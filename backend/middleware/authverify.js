@@ -1,5 +1,4 @@
-import { json } from "body-parser";
-import jwt from jsonwebtoken;
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 export const authverify = (req, res, next) => {

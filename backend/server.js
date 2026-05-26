@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import express from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { authverify } from "./middleware/authverify.js";
 import jwt from "jsonwebtoken";
 dotenv.config();
 // await mongoose.connect("mongodb://localhost:27017/JobSearchPortal")
