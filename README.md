@@ -4,7 +4,7 @@ A One Stop solution to connect recruiters and job searchers.
 
 ## Folder Structure
 
-### `/frontend`
+### `/ui`
 
 Contains the UI for the application
 
