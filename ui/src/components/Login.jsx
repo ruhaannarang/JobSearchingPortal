@@ -14,16 +14,22 @@ const Login = () => {
   } = useForm()
    
   const onSubmit =async (loginCreds) => {
-    console.log(loginCreds)
-    const res=await axios.post("http://localhost:5000/login",loginCreds)
-    console.log(res.loginCreds)
-    localStorage.setItem(
-      "token",
-      res.loginCreds.token
-    );
-    reset()
-    //will update after setting up backend for auth and when the homepage will be made
-    // Navigate("/login-done")
+    try {
+      console.log(loginCreds)
+      const res=await axios.post("http://localhost:5000/login",loginCreds)
+      console.log(res.data)
+      localStorage.setItem(
+        "token",
+        res.data.token
+      );
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      reset()
+      //will update after setting up backend for auth and when the homepage will be made
+      // Navigate("/login-done")
+    } catch (error) {
+      console.error("Login failed:", error.response?.data?.message || error.message);
+      alert(error.response?.data?.message || "Login failed");
+    }
   }
   
   

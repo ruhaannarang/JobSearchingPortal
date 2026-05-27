@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import express from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { Jobs } from "./models/Jobs.js";
 import { authverify } from "./middleware/authverify.js";
 import jwt from "jsonwebtoken";
 dotenv.config();
@@ -28,7 +29,7 @@ app.get("/", (req, res) => {
 app.post("/jobSeekerData", async (req, res) => {
   try {
     const user = new jobSeekerData(req.body);
-    password = user.password;
+    const password = user.password;
     const hashpassword = await bcrypt.hash(password, 10);
     user.password = hashpassword;
     await user.save();
@@ -44,9 +45,9 @@ app.post("/recruiterData", async (req, res) => {
     console.log("Received data:", req.body);
 
     const user = new recruiterData(req.body);
-    password = user.password;
+    const password = user.password;
     const hashpassword = await bcrypt.hash(password, 10);
-    user.password = hashpassword;
+    user.password = String(hashpassword);
     await user.save();
     res.json({ message: "User saved successfully!" });
   } catch (err) {
@@ -108,6 +109,37 @@ app.post("/login", async (req, res) => {
         email: user.email,
       },
     });
+  }
+});
+app.post("/api/jobs", async (req, res) => {
+  try {
+    const job = new Jobs(req.body);
+    await job.save();
+    res.status(201).json({ message: "Job created successfully!" });
+  } catch (err) {
+    console.error("Error creating job:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+app.get("/myjobs/:name", async (req, res) => {
+  try {
+    const jobs = await Jobs.find({ createdBy: req.params.name });
+    res.json(jobs);
+  } catch (err) {
+    console.error("Error fetching jobs:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+app.get("/jobs/:id", async (req, res) => {
+  try {
+    const job = await Jobs.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+    res.json(job);
+  } catch (err) {
+    console.error("Error fetching job:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 app.get("/getuser", authverify, async (req, res) => {

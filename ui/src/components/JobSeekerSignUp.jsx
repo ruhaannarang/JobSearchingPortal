@@ -14,8 +14,9 @@ const JobSeekerSignUp = () => {
 
   const navigate = useNavigate()
   const onSubmit = async (jobSeekerData) => {
-    const res= await axios.post('http://localhost:5000/jobSeekerData', jobSeekerData)
-    console.log(res.jobSeekerData)
+    const { confirmpassword: _, ...dataToSend } = jobSeekerData
+    const res= await axios.post('http://localhost:5000/jobSeekerData', dataToSend)
+    console.log(res.data)
     reset();
     navigate("/signup-done")
   }

@@ -38,11 +38,12 @@ const RecruiterSignUp = () => {
     });
   };
   const onSubmit = async (RecruiterData) => {
+    const { confirmpassword: _, ...dataToSend } = RecruiterData
     const res = await axios.post(
       "http://localhost:5000/recruiterData",
-      RecruiterData,
+      dataToSend,
     );
-    console.log(res.RecruiterData);
+    console.log(res.data);
     reset();
     navigate("/signup-done");
   };

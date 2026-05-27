@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+// import { useEffect } from "react";
 import "./App.css";
 import { useState } from "react";
 import Navbar from "./components/Navbar";
@@ -6,13 +6,17 @@ import Home from "./components/Home";
 import About from "./components/About";
 import Contact from "./components/Contact";
 import SignUp from "./components/SignUp";
+import JobDetails from "./components/JobDetails";
 import Login from "./components/Login";
 import JobSeekerSignUp from "./components/JobSeekerSignUp";
 import RecruiterSignUp from "./components/RecruiterSignUp";
 import SignUpDonePage from "./components/SignUpDonePage";
+import AddJob from "./components/AddJob";
+import Jobs from "./components/Jobs";
 import { createBrowserRouter,RouterProvider } from 'react-router-dom';
 
 function App() {
+  const [jobid, setJobid] = useState("");
   const  router=createBrowserRouter([
     {path:"/",
       element:<><Navbar/><Home/></>
@@ -37,18 +41,27 @@ function App() {
     },
     {path:"/login",
       element:<><Navbar/><Login/></>
+    },
+    {path:"/jobs",
+      element:<><Navbar/><Jobs setJobid={setJobid}/></>
+    },
+    {path:"/addjob",
+      element:<><Navbar/><AddJob/></>
+    },
+    {path:"/jobs/:id",
+      element:<><Navbar/><JobDetails jobid={jobid}/></>
     }
   ])
-  const [data, setData] = useState({});
-  useEffect(() => {
-    async function fetchData() {
-      const response = await fetch("http://localhost:5000/api");
-      const data = await response.json();
-      console.log(data);
-      setData(data);
-    }
-    fetchData();
-  }, []);
+  // const [data, setData] = useState({});
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     const response = await fetch("http://localhost:5000/api");
+  //     const data = await response.json();
+  //     console.log(data);
+  //     setData(data);
+  //   }
+  //   fetchData();
+  // }, []);
   return (
     <>
     <RouterProvider router={router}/>
