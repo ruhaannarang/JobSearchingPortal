@@ -1,10 +1,11 @@
 import React from 'react'
-import { use } from 'react'
+// import { use } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useEffect ,useState} from 'react'
-const Jobs = (setJobid) => {
+
+const Jobs = ({setJobid}) => {
     const {user}=useAuth()
-    const username=user.user.username
+    const username=user?.user?.username
     const [jobs, setJobs] = useState([]);
     useEffect(() => {
         const fetchJobs = async () => {
@@ -17,6 +18,7 @@ const Jobs = (setJobid) => {
 
     return (
         <div>
+            <h1>{username}'s Jobs</h1>
             <a href="/addjob">Add Job</a>
             <h1>My Jobs</h1>
             {
@@ -24,7 +26,7 @@ const Jobs = (setJobid) => {
                     <div key={job._id}>
                         <h2>{job.title}</h2>
                         <p>{job.description}</p>
-                        <a href={`/jobs/${job._id}`} onClick={setJobid(job._id)}>View Details</a>
+                        <a href={`/jobs/${job._id}`} onClick={() => setJobid(job._id)}>View Details</a>
                     </div>
                 ))
             }

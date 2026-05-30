@@ -23,6 +23,9 @@ const Login = () => {
         res.data.token
       );
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      if(res.data.user.role==="recruiter"){
+        await Navigate("/addjob")
+      }
       reset()
       //will update after setting up backend for auth and when the homepage will be made
       // Navigate("/login-done")

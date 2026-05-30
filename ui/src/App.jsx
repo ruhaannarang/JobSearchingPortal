@@ -1,6 +1,7 @@
 // import { useEffect } from "react";
 import "./App.css";
 import { useState } from "react";
+import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import About from "./components/About";
@@ -64,7 +65,10 @@ function App() {
   // }, []);
   return (
     <>
+    <AuthProvider>
+
     <RouterProvider router={router}/>
+    </AuthProvider>
     
       {/* <Navbar />
       <h1>Job Search Portal</h1>

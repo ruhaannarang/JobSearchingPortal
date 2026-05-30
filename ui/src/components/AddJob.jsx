@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 const AddJob = () => {
     const {user,loading}=useAuth()
-    const username=user.user.username
+    const username=user?.user?.username
     const [jobdata, setJobdata] = useState({
         title: "",
         company: "",
@@ -25,12 +25,14 @@ const AddJob = () => {
                 body: JSON.stringify(jobdata),
             }
         )
-        navigate("/jobs");}
+        // await navigate("/jobs");
+      }
 
    
 
   return (
     <div>
+      <h1>{username}'s Add Job</h1>
       <div className="page">
         <div className="addjobtitle">Add Job</div>
         <div className="addjobform">
