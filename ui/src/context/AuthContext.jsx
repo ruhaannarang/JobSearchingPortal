@@ -1,34 +1,57 @@
-import { useState,useEffect,useContext,createContext } from "react";
-const AuthContext=createContext();
-export const AuthProvider=({children})=>{
-    const [user,setUser]=useState(null);
-    const [loading,setLoading]=useState(true);
-    useEffect(()=>{
-        const token=localStorage.getItem("token");
-        if(token){
-            fetch("http://localhost:5000/getuser",{
-                headers:{
-                    "Authorization": `Bearer ${token}`
+import { useState, useEffect, useContext, createContext } from "react";
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
+
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (error) {
+                console.error("Failed to parse stored user:", error);
+            }
+        }
+
+        if (!token) {
+            setLoading(false);
+            return;
+        }
+
+        fetch("http://localhost:5000/getuser", {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then(async (res) => {
+                if (!res.ok) {
+                    throw new Error("Token invalid");
                 }
-            })
-            .then(res => res.json())
-            .then(data => {
+                const data = await res.json();
                 setUser(data.user);
-                setLoading(false);
+                localStorage.setItem("user", JSON.stringify(data.user));
             })
-            .catch(err => {
+            .catch((err) => {
                 console.error("Error fetching user data:", err);
+                setUser(null);
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+            })
+            .finally(() => {
                 setLoading(false);
             });
-        } else {
-            setLoading(false);
-        }
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading }}>
+        <AuthContext.Provider value={{ user, setUser, loading }}>
             {children}
         </AuthContext.Provider>
     );
 };
+
 export const useAuth = () => useContext(AuthContext);

@@ -56,10 +56,10 @@ app.post("/recruiterData", async (req, res) => {
   }
 });
 app.post("/login", async (req, res) => {
-  const creds =  req.body;
+  const creds = req.body;
 
-  if (creds.role == "jobseeker") {
-    const user = await jobSeekerData.findOne({username:creds.username});
+  if (creds.role === "jobseeker") {
+    const user = await jobSeekerData.findOne({ username: creds.username });
     if (!user) {
       return res.status(400).json({
         message: "Invalid Credentials",
@@ -71,21 +71,22 @@ app.post("/login", async (req, res) => {
         message: "Invalid Credentials",
       });
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id, role: "jobseeker" }, process.env.JWT_SECRET);
     res.status(200).json({
       message: "Login Successful",
-
       token,
-
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
+        username: user.username,
+        role: "jobseeker",
       },
     });
   }
-  if (creds.role == "recruiter") {
-    const user = await recruiterData.findOne({username:creds.username});
+
+  if (creds.role === "recruiter") {
+    const user = await recruiterData.findOne({ username: creds.username });
     if (!user) {
       return res.status(400).json({
         message: "Invalid Credentials",
@@ -97,16 +98,16 @@ app.post("/login", async (req, res) => {
         message: "Invalid Credentials",
       });
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id, role: "recruiter" }, process.env.JWT_SECRET);
     res.status(200).json({
       message: "Login Successful",
-
       token,
-
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
+        username: user.username,
+        role: "recruiter",
       },
     });
   }
@@ -127,6 +128,25 @@ app.get("/myjobs/:name", async (req, res) => {
     res.json(jobs);
   } catch (err) {
     console.error("Error fetching jobs:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+app.get("/recruiter/:username", async (req, res) => {
+  try {
+    const recruiter = await recruiterData.findOne({ username: req.params.username }).select("-password");
+    if (!recruiter) {
+      return res.status(404).json({ error: "Recruiter not found" });
+    }
+
+    res.json({
+      id: recruiter._id,
+      name: recruiter.name,
+      username: recruiter.username,
+      companyname: recruiter.companyname,
+      companylogourl: recruiter.companylogourl,
+    });
+  } catch (err) {
+    console.error("Error fetching recruiter:", err.message);
     res.status(500).json({ error: err.message });
   }
 });

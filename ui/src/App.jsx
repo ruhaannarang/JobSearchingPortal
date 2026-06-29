@@ -17,8 +17,7 @@ import Jobs from "./components/Jobs";
 import { createBrowserRouter,RouterProvider } from 'react-router-dom';
 
 function App() {
-  const [jobid, setJobid] = useState("");
-  const  router=createBrowserRouter([
+  const router = createBrowserRouter([
     {path:"/",
       element:<><Navbar/><Home/></>
     },
@@ -44,13 +43,13 @@ function App() {
       element:<><Navbar/><Login/></>
     },
     {path:"/jobs",
-      element:<><Navbar/><Jobs setJobid={setJobid}/></>
+      element:<><Navbar/><Jobs/></>
     },
     {path:"/addjob",
       element:<><Navbar/><AddJob/></>
     },
     {path:"/jobs/:id",
-      element:<><Navbar/><JobDetails jobid={jobid}/></>
+      element:<><Navbar/><JobDetails/></>
     }
   ])
   // const [data, setData] = useState({});

@@ -2,9 +2,11 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
-  const Navigate=useNavigate();
+  const Navigate = useNavigate();
+  const { setUser } = useAuth();
   const {
     register,
     handleSubmit,
@@ -18,13 +20,11 @@ const Login = () => {
       console.log(loginCreds)
       const res=await axios.post("http://localhost:5000/login",loginCreds)
       console.log(res.data)
-      localStorage.setItem(
-        "token",
-        res.data.token
-      );
+      localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      if(res.data.user.role==="recruiter"){
-        await Navigate("/addjob")
+      setUser(res.data.user);
+      if (res.data.user.role === "recruiter") {
+        Navigate("/addjob");
       }
       reset()
       //will update after setting up backend for auth and when the homepage will be made

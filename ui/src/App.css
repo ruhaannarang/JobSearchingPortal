@@ -115,14 +115,19 @@
   justify-content: space-between;
   
 }
-input{
+input, textarea, select{
   padding: 10px 20px;
   width: 300px;
   background-color: white;
   color: black;
   border-radius: 5px;
   border: 0px;
+  font-size: 1rem;
+}
 
+textarea{
+  width: 100%;
+  min-height: 140px;
 }
 .Submit{
   align-items: center;
@@ -215,4 +220,206 @@ input{
 }
 .inputQ h2{
   font-size: 2rem;
+}
+
+.page-loading{
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: gold;
+  font-size: 1.2rem;
+}
+
+.jobs-page,
+.addjob-page,
+.job-details-page{
+  padding: 32px 24px 60px;
+  min-height: 90vh;
+}
+
+.jobs-hero{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,255,255,0.03));
+}
+
+.jobs-hero h1,
+.addjobtitle{
+  color: gold;
+  margin-bottom: 8px;
+}
+
+.jobs-hero p,
+.job-detail-body p,
+.job-description{
+  color: #d9d9d9;
+  line-height: 1.6;
+}
+
+.company-summary-card,
+.addjob-card,
+.job-details-card{
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.company-summary-card{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 260px;
+}
+
+.company-logo,
+.small-company-logo{
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid gold;
+  background: white;
+}
+
+.small-company-logo{
+  width: 48px;
+  height: 48px;
+}
+
+.company-logo-fallback,
+.small-company-logo-fallback{
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: gold;
+  color: black;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.small-company-logo-fallback{
+  width: 48px;
+  height: 48px;
+  font-size: 1.1rem;
+}
+
+.page-actions{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.add-job-link,
+.view-details-link,
+.submit-job-btn,
+.secondary-link{
+  display: inline-block;
+  text-decoration: none;
+  background: gold;
+  color: black;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.submit-job-btn{
+  border: 0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.secondary-link{
+  background: transparent;
+  border: 1px solid gold;
+  color: gold;
+}
+
+.jobs-list{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.job-card{
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.job-card-header{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.job-card-header h2{
+  color: gold;
+  margin-bottom: 4px;
+}
+
+.job-card-footer{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  color: #cfcfcf;
+}
+
+.addjob-card{
+  max-width: 800px;
+}
+
+.addjob-form{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.jobdetail{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jobdetail label{
+  color: gold;
+  font-weight: 600;
+}
+
+.job-detail-body{
+  margin-top: 16px;
+}
+
+.job-detail-meta{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  color: #f4f4f4;
+}
+
+@media (max-width: 768px) {
+  .jobs-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .company-summary-card {
+    width: 100%;
+  }
 }

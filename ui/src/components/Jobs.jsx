@@ -1,35 +1,96 @@
 import React from 'react'
-// import { use } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useEffect ,useState} from 'react'
+import { useEffect, useState } from 'react'
 
-const Jobs = ({setJobid}) => {
-    const {user}=useAuth()
-    const username=user?.user?.username
+const Jobs = () => {
+    const { user, loading } = useAuth();
+    const username = user?.username || user?.name || "";
     const [jobs, setJobs] = useState([]);
+    const [recruiterInfo, setRecruiterInfo] = useState(null);
+
     useEffect(() => {
+        if (!username) {
+            setJobs([]);
+            setRecruiterInfo(null);
+            return;
+        }
+
+        const fetchRecruiterInfo = async () => {
+            try {
+                const response = await fetch(`http://localhost:5000/recruiter/${username}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setRecruiterInfo(data);
+                }
+            } catch (error) {
+                console.error('Could not fetch recruiter info', error);
+            }
+        };
+
         const fetchJobs = async () => {
             const response = await fetch(`http://localhost:5000/myjobs/${username}`);
             const data = await response.json();
             setJobs(data);
-        }
+        };
+
+        fetchRecruiterInfo();
         fetchJobs();
     }, [username]);
 
+    if (loading) {
+        return <div className="page-loading">Loading jobs...</div>;
+    }
+
     return (
-        <div>
-            <h1>{username}'s Jobs</h1>
-            <a href="/addjob">Add Job</a>
-            <h1>My Jobs</h1>
-            {
-                jobs.map((job) => (
-                    <div key={job._id}>
-                        <h2>{job.title}</h2>
-                        <p>{job.description}</p>
-                        <a href={`/jobs/${job._id}`} onClick={() => setJobid(job._id)}>View Details</a>
+        <div className="jobs-page">
+            <div className="jobs-hero">
+                <div>
+                    <h1>{username ? `${username}'s Jobs` : 'My Jobs'}</h1>
+                    <p>Manage your posted opportunities and keep your company brand visible.</p>
+                </div>
+                {recruiterInfo && (
+                    <div className="company-summary-card">
+                        {recruiterInfo.companylogourl ? (
+                            <img src={recruiterInfo.companylogourl} alt="Company logo" className="company-logo" />
+                        ) : (
+                            <div className="company-logo-fallback">{(recruiterInfo.companyname || recruiterInfo.name || 'C').charAt(0)}</div>
+                        )}
+                        <div>
+                            <strong>{recruiterInfo.companyname || recruiterInfo.name}</strong>
+                            <p>{recruiterInfo.username}</p>
+                        </div>
                     </div>
-                ))
-            }
+                )}
+            </div>
+
+            <div className="page-actions">
+                <Link to="/addjob" className="add-job-link">+ Add Job</Link>
+                <Link to="/" className="secondary-link">Back to Home</Link>
+            </div>
+
+            <div className="jobs-list">
+                {jobs.map((job) => (
+                    <div key={job._id} className="job-card">
+                        <div className="job-card-header">
+                            {recruiterInfo?.companylogourl ? (
+                                <img src={recruiterInfo.companylogourl} alt="Company logo" className="small-company-logo" />
+                            ) : (
+                                <div className="small-company-logo-fallback">{(recruiterInfo?.companyname || recruiterInfo?.name || 'C').charAt(0)}</div>
+                            )}
+                            <div>
+                                <h2>{job.title}</h2>
+                                <p>{job.company}</p>
+                            </div>
+                        </div>
+                        <p className="job-description">{job.description}</p>
+                        <div className="job-card-footer">
+                            <span>{job.location}</span>
+                            <Link to={`/jobs/${job._id}`} className="view-details-link">View Details</Link>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
