@@ -5,6 +5,7 @@ const jobsSchema = new mongoose.Schema({
   location:String,
   salary:Number,
   description:String,
+  domain:String,
   appliedBy:[Object],
   createdBy:String
 }, { timestamps: true });

@@ -4,6 +4,7 @@ const jobSeekerDataSchema = new mongoose.Schema({
   email:String,
   phone:Number,
   jobField:String,
+  resumeUrl:String,
   username:String,
   password:String
 });

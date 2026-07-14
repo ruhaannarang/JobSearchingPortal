@@ -18,24 +18,42 @@ const RecruiterSignUp = () => {
   
   const handleimage = async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     setLoadingg(true);
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "s+ve_posts");
     data.append("cloud_name", "danmv4rdq");
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/danmv4rdq/image/upload",
-      {
-        method: "post",
-        body: data,
-      },
-    );
-    const imgUrl = await res.json();
-    setLoadingg(false);
-    console.log(imgUrl.url);
-    setValue("companylogourl", imgUrl.url, {
-      shouldValidate: true,
-    });
+
+    try {
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/danmv4rdq/image/upload",
+        {
+          method: "post",
+          body: data,
+        },
+      );
+      const imgUrl = await res.json();
+
+      if (!res.ok) {
+        throw new Error(imgUrl.error?.message || "Image upload failed");
+      }
+
+      const uploadedUrl = imgUrl.secure_url || imgUrl.url;
+      if (!uploadedUrl) {
+        throw new Error("Cloudinary did not return an image URL");
+      }
+
+      setValue("companylogourl", uploadedUrl, {
+        shouldValidate: true,
+      });
+    } catch (err) {
+      console.error("Cloudinary image upload failed", err);
+      alert("Failed to upload company image, please try again.");
+    } finally {
+      setLoadingg(false);
+    }
   };
   const onSubmit = async (RecruiterData) => {
     const { confirmpassword: _, ...dataToSend } = RecruiterData

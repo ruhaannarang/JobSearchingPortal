@@ -80,6 +80,7 @@ app.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         username: user.username,
+        resumeUrl: user.resumeUrl,
         role: "jobseeker",
       },
     });
@@ -122,9 +123,62 @@ app.post("/api/jobs", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get("/api/jobs", async (req, res) => {
+  try {
+    const { domain } = req.query;
+    let query = {};
+    if (domain) {
+      query.domain = domain;
+    }
+    const jobs = await Jobs.find(query).sort({ createdAt: -1 });
+    res.json(jobs);
+  } catch (err) {
+    console.error("Error fetching all jobs:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post("/api/jobs/:id/apply", authverify, async (req, res) => {
+  try {
+    if (req.user.role !== "jobseeker") {
+      return res.status(403).json({ error: "Only job seekers can apply for jobs" });
+    }
+    if (!req.user.resumeUrl) {
+      return res.status(400).json({ error: "You must upload a resume to apply. Please sign up with your resume." });
+    }
+    const job = await Jobs.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+    const alreadyApplied = job.appliedBy && job.appliedBy.some(app => app.username === req.user.username);
+    if (alreadyApplied) {
+      return res.status(400).json({ error: "You have already applied to this job" });
+    }
+    const applicantDetails = {
+      name: req.user.name,
+      email: req.user.email,
+      phone: req.user.phone,
+      jobField: req.user.jobField,
+      username: req.user.username,
+      resumeUrl: req.user.resumeUrl,
+      appliedAt: new Date()
+    };
+    if (!job.appliedBy) {
+      job.appliedBy = [];
+    }
+    job.appliedBy.push(applicantDetails);
+    await job.save();
+    res.json({ message: "Application sent successfully!", job });
+  } catch (err) {
+    console.error("Error applying for job:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.get("/myjobs/:name", async (req, res) => {
   try {
-    const jobs = await Jobs.find({ createdBy: req.params.name });
+    const username = req.params.name;
+    const jobs = await Jobs.find({
+      createdBy: { $regex: `^${username}$`, $options: "i" },
+    }).sort({ createdAt: -1 });
     res.json(jobs);
   } catch (err) {
     console.error("Error fetching jobs:", err.message);
@@ -133,7 +187,7 @@ app.get("/myjobs/:name", async (req, res) => {
 });
 app.get("/recruiter/:username", async (req, res) => {
   try {
-    const recruiter = await recruiterData.findOne({ username: req.params.username }).select("-password");
+    const recruiter = await recruiterData.findOne({ username: { $regex: `^${req.params.username}$`, $options: "i" } }).select("-password");
     if (!recruiter) {
       return res.status(404).json({ error: "Recruiter not found" });
     }

@@ -14,6 +14,7 @@ import RecruiterSignUp from "./components/RecruiterSignUp";
 import SignUpDonePage from "./components/SignUpDonePage";
 import AddJob from "./components/AddJob";
 import Jobs from "./components/Jobs";
+import JobSeekerJobs from "./components/JobSeekerJobs";
 import { createBrowserRouter,RouterProvider } from 'react-router-dom';
 
 function App() {
@@ -44,6 +45,9 @@ function App() {
     },
     {path:"/jobs",
       element:<><Navbar/><Jobs/></>
+    },
+    {path:"/find-jobs",
+      element:<><Navbar/><JobSeekerJobs/></>
     },
     {path:"/addjob",
       element:<><Navbar/><AddJob/></>

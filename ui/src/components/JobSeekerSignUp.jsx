@@ -1,18 +1,68 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const JobSeekerSignUp = () => {
+  const [Loadingg, setLoadingg] = useState(false);
   const {
     register,
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm()
 
   const navigate = useNavigate()
+  
+  const handleResume = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Please upload a PDF file only.");
+      e.target.value = "";
+      return;
+    }
+
+    setLoadingg(true);
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "s+ve_posts");
+    data.append("cloud_name", "danmv4rdq");
+    data.append("resource_type", "raw");
+
+    try {
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/danmv4rdq/raw/upload",
+        {
+          method: "post",
+          body: data,
+        }
+      );
+      const fileData = await res.json();
+
+      if (!res.ok) {
+        throw new Error(fileData.error?.message || "Resume upload failed");
+      }
+      console.log("Cloudinary response:", fileData);
+      const uploadedUrl = fileData.secure_url || fileData.url;
+      if (!uploadedUrl) {
+        throw new Error("Cloudinary did not return a resume URL");
+      }
+
+      setValue("resumeUrl", uploadedUrl, {
+        shouldValidate: true,
+      });
+    } catch (err) {
+      console.error("Cloudinary resume upload failed", err);
+      alert("Failed to upload resume, please try again.");
+    } finally {
+      setLoadingg(false);
+    }
+  };
+
   const onSubmit = async (jobSeekerData) => {
     const { confirmpassword: _, ...dataToSend } = jobSeekerData
     const res= await axios.post('http://localhost:5000/jobSeekerData', dataToSend)
@@ -70,6 +120,18 @@ const JobSeekerSignUp = () => {
                 <option value="others">Others</option>
               </select>
               {errors.jobField && <span className='red'>This field is required</span>}
+            </div>
+          </div>
+          <div className="inputQ" >
+            <h2>Upload your Resume (PDF format)</h2>
+            <div>
+              <input onChange={handleResume} type="file" accept=".pdf" />
+              {Loadingg ? <p>Uploading resume...</p> : null}
+              <input
+                type="hidden"
+                {...register("resumeUrl", { required: true })}
+              />
+              {errors.resumeUrl && <span className='red'>Resume upload is required</span>}
             </div>
           </div>
           <div className="inputQ" >

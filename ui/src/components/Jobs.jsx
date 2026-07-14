@@ -66,7 +66,6 @@ const Jobs = () => {
 
             <div className="page-actions">
                 <Link to="/addjob" className="add-job-link">+ Add Job</Link>
-                <Link to="/" className="secondary-link">Back to Home</Link>
             </div>
 
             <div className="jobs-list">
@@ -84,6 +83,16 @@ const Jobs = () => {
                             </div>
                         </div>
                         <p className="job-description">{job.description}</p>
+                        
+                        <div className="applicants-summary" style={{ marginTop: "16px", borderTop: "1px solid rgba(255, 255, 255, 0.1)", paddingTop: "12px", color: "#ccc" }}>
+                            <h4 style={{ color: "gold", marginBottom: "8px" }}>Applicants ({job.appliedBy?.length || 0})</h4>
+                            <p style={{ margin: 0, fontSize: "0.9rem" }}>
+                                {job.appliedBy && job.appliedBy.length > 0
+                                    ? `${job.appliedBy.length} applicant${job.appliedBy.length > 1 ? "s" : ""}`
+                                    : "No applications yet"}
+                            </p>
+                        </div>
+
                         <div className="job-card-footer">
                             <span>{job.location}</span>
                             <Link to={`/jobs/${job._id}`} className="view-details-link">View Details</Link>

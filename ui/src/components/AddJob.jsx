@@ -12,6 +12,7 @@ const AddJob = () => {
         location: "",
         salary: "",
         description: "",
+        domain: "",
         createdBy: username,
     });
 
@@ -38,12 +39,18 @@ const AddJob = () => {
 
     const senddata = async (e) => {
         e.preventDefault();
+
+        const payload = {
+            ...jobdata,
+            createdBy: user?.username || user?.name || username,
+        };
+
         await fetch("http://localhost:5000/api/jobs", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(jobdata),
+            body: JSON.stringify(payload),
         });
     };
 
@@ -74,7 +81,6 @@ const AddJob = () => {
       </div>
       <div className="page-actions">
         <Link to="/jobs" className="secondary-link">View My Jobs</Link>
-        <Link to="/" className="secondary-link">Back to Home</Link>
       </div>
       <div className="addjob-card">
         <div className="addjobtitle">Create a Job Post</div>
@@ -101,6 +107,38 @@ const AddJob = () => {
             <div className="jobdetail">
               <label>Salary</label>
               <input type="text" placeholder="Salary" onChange={(e) => setJobdata({...jobdata, salary: e.target.value})} />
+            </div>
+          </div>
+          <div className="jobinput">
+            <div className="jobdetail">
+              <label>Job Domain / Field</label>
+              <select 
+                className="domain-select" 
+                value={jobdata.domain} 
+                onChange={(e) => setJobdata({...jobdata, domain: e.target.value})}
+                required
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  backgroundColor: "#fff",
+                  fontSize: "14px",
+                  boxSizing: "border-box",
+                  outline: "none"
+                }}
+              >
+                <option value="">Select Domain</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Data Science">Data Science</option>
+                <option value="Product Management">Product Management</option>
+                <option value="Design">Design</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Sales">Sales</option>
+                <option value="Human Resources">Human Resources</option>
+                <option value="Finance">Finance</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
           </div>
           <div className="jobinput">
