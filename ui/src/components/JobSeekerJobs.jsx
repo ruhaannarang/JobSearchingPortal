@@ -339,6 +339,20 @@ const JobSeekerJobs = () => {
           background: #2e7d32;
           color: white;
         }
+        .applied-notice {
+          margin-top: 16px;
+          padding: 14px 16px;
+          background: rgba(46, 125, 50, 0.1);
+          border: 1px solid rgba(46, 125, 50, 0.3);
+          border-radius: 8px;
+          color: #81c784;
+          font-size: 0.95rem;
+          line-height: 1.5;
+          text-align: center;
+        }
+        .applied-notice p {
+          margin: 0;
+        }
         .status-msg {
           margin-top: 12px;
           padding: 10px;
@@ -514,6 +528,11 @@ const JobSeekerJobs = () => {
                             ? "Submitting Application..."
                             : "Send Application"}
                         </button>
+                        {hasApplied(selectedJob) && (
+                          <div className="applied-notice">
+                            <p>You will receive an email from the recruiter for further details regarding your selection status.</p>
+                          </div>
+                        )}
                         {message && <div className="status-msg success">{message}</div>}
                         {error && <div className="status-msg error">{error}</div>}
                       </>

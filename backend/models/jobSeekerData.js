@@ -6,6 +6,16 @@ const jobSeekerDataSchema = new mongoose.Schema({
   jobField:String,
   resumeUrl:String,
   username:String,
-  password:String
+  password:String,
+  appliedJobs: [{
+    jobId: { type: mongoose.Schema.Types.ObjectId, ref: 'Jobs' },
+    title: String,
+    company: String,
+    location: String,
+    salary: Number,
+    domain: String,
+    appliedAt: { type: Date, default: Date.now },
+    status: { type: String, default: 'applied' }
+  }]
 });
 export const jobSeekerData = mongoose.model('jobSeekerData', jobSeekerDataSchema);

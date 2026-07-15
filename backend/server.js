@@ -167,6 +167,26 @@ app.post("/api/jobs/:id/apply", authverify, async (req, res) => {
     }
     job.appliedBy.push(applicantDetails);
     await job.save();
+
+    // Add job to jobseeker's appliedJobs array
+    await jobSeekerData.findByIdAndUpdate(
+      req.user.id,
+      {
+        $addToSet: {
+          appliedJobs: {
+            jobId: job._id,
+            title: job.title,
+            company: job.company,
+            location: job.location,
+            salary: job.salary,
+            domain: job.domain,
+            appliedAt: new Date(),
+            status: "applied"
+          }
+        }
+      }
+    );
+
     res.json({ message: "Application sent successfully!", job });
   } catch (err) {
     console.error("Error applying for job:", err.message);
@@ -226,6 +246,67 @@ app.get("/api", (req, res) => {
     message: "Hello from the API!",
     randomNumber: Math.ceil(Math.random() * 100),
   });
+});
+
+// Update job seeker profile
+app.put("/api/jobseeker/profile", authverify, async (req, res) => {
+  try {
+    if (req.user.role !== "jobseeker") {
+      return res.status(403).json({ error: "Only job seekers can update this profile" });
+    }
+    const { name, email, phone, jobField, resumeUrl } = req.body;
+    const user = await jobSeekerData.findByIdAndUpdate(
+      req.user.id,
+      { name, email, phone, jobField, resumeUrl },
+      { new: true, runValidators: true }
+    ).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ message: "Profile updated successfully!", user });
+  } catch (err) {
+    console.error("Error updating job seeker profile:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get applied jobs for job seeker
+app.get("/api/jobseeker/applied-jobs", authverify, async (req, res) => {
+  try {
+    if (req.user.role !== "jobseeker") {
+      return res.status(403).json({ error: "Only job seekers can view applied jobs" });
+    }
+    const user = await jobSeekerData.findById(req.user.id).select("-password").populate('appliedJobs.jobId');
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ appliedJobs: user.appliedJobs || [] });
+  } catch (err) {
+    console.error("Error fetching applied jobs:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update recruiter profile
+app.put("/api/recruiter/profile", authverify, async (req, res) => {
+  try {
+    if (req.user.role !== "recruiter") {
+      return res.status(403).json({ error: "Only recruiters can update this profile" });
+    }
+    const { name, email, phone, companyname, companylogourl } = req.body;
+    const user = await recruiterData.findByIdAndUpdate(
+      req.user.id,
+      { name, email, phone, companyname, companylogourl },
+      { new: true, runValidators: true }
+    ).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ message: "Profile updated successfully!", user });
+  } catch (err) {
+    console.error("Error updating recruiter profile:", err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.listen(PORT, () => {

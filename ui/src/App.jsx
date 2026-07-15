@@ -2,7 +2,9 @@
 import "./App.css";
 import { useState } from "react";
 import { AuthProvider } from "./context/AuthContext";
-import Navbar from "./components/Navbar";
+import NavbarHome from "./components/NavbarHome";
+import NavbarJobSeeker from "./components/JobSeekerNavbar";
+import NavbarRecruiter from "./components/RecruiterNavbar";
 import Home from "./components/Home";
 import About from "./components/About";
 import Contact from "./components/Contact";
@@ -15,45 +17,66 @@ import SignUpDonePage from "./components/SignUpDonePage";
 import AddJob from "./components/AddJob";
 import Jobs from "./components/Jobs";
 import JobSeekerJobs from "./components/JobSeekerJobs";
-import { createBrowserRouter,RouterProvider } from 'react-router-dom';
+import AppliedJobs from "./components/AppliedJobs";
+import Profile from "./components/Profile";
+import EditProfile from "./components/EditProfile";
+import RecruiterProfile from "./components/RecruiterProfile";
+import RecruiterEditProfile from "./components/RecruiterEditProfile";
+import HomeRedirect from "./components/HomeRedirect";
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 function App() {
   const router = createBrowserRouter([
     {path:"/",
-      element:<><Navbar/><Home/></>
+      element:<><NavbarHome/><HomeRedirect/><Home/></>
     },
     {path:"/about",
-      element:<><Navbar/><About/></>
+      element:<><NavbarHome/><About/></>
     },
     {path:"/Contact",
-      element:<><Navbar/><Contact/></>
+      element:<><NavbarHome/><Contact/></>
     },
     {path:"/signup",
-      element:<><Navbar/><SignUp/></>
+      element:<><NavbarHome/><SignUp/></>
     },
     {path:"/recruiter-signup",
-      element:<><Navbar/><RecruiterSignUp/></>
+      element:<><NavbarHome/><RecruiterSignUp/></>
     },
     {path:"/jobseeker-signup",
-      element:<><Navbar/><JobSeekerSignUp/></>
+      element:<><NavbarHome/><JobSeekerSignUp/></>
     },
     {path:"/signup-done",
-      element:<><Navbar/><SignUpDonePage/></>
+      element:<><NavbarHome/><SignUpDonePage/></>
     },
     {path:"/login",
-      element:<><Navbar/><Login/></>
-    },
-    {path:"/jobs",
-      element:<><Navbar/><Jobs/></>
+      element:<><NavbarHome/><Login/></>
     },
     {path:"/find-jobs",
-      element:<><Navbar/><JobSeekerJobs/></>
+      element:<><NavbarJobSeeker/><JobSeekerJobs/></>
+    },
+    {path:"/applied-jobs",
+      element:<><NavbarJobSeeker/><AppliedJobs/></>
+    },
+    {path:"/profile",
+      element:<><NavbarJobSeeker/><Profile/></>
+    },
+    {path:"/edit-profile",
+      element:<><NavbarJobSeeker/><EditProfile/></>
+    },
+    {path:"/jobs",
+      element:<><NavbarRecruiter/><Jobs/></>
     },
     {path:"/addjob",
-      element:<><Navbar/><AddJob/></>
+      element:<><NavbarRecruiter/><AddJob/></>
+    },
+    {path:"/recruiter-profile",
+      element:<><NavbarRecruiter/><RecruiterProfile/></>
+    },
+    {path:"/recruiter-edit-profile",
+      element:<><NavbarRecruiter/><RecruiterEditProfile/></>
     },
     {path:"/jobs/:id",
-      element:<><Navbar/><JobDetails/></>
+      element:<><NavbarJobSeeker/><JobDetails/></>
     }
   ])
   // const [data, setData] = useState({});
