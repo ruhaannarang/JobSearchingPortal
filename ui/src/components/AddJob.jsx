@@ -62,7 +62,7 @@ const AddJob = () => {
     <div className="addjob-page">
       <div className="jobs-hero">
         <div>
-          <h1>{username ? `${username}'s Add Job` : 'Add Job'}</h1>
+          <h1>{ 'Add Job'}</h1>
           <p>Post a new opportunity with your company branding.</p>
         </div>
         {recruiterInfo && (
@@ -145,7 +145,6 @@ const AddJob = () => {
             <div className="jobdetail">
               <label>Job Description</label>
               <textarea
-                cols="30"
                 rows="10"
                 placeholder="Job Description"
                 onChange={(e) => setJobdata({...jobdata, description: e.target.value})}

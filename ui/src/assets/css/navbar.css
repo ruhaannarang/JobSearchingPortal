@@ -91,6 +91,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  color: inherit;
 }
 .logout-btn {
   border-top: 1px solid rgba(255, 255, 255, 0.1);

@@ -71,7 +71,7 @@ const JobDetails = () => {
             {hasApplicants ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "16px" }}>
                 {job.appliedBy.map((applicant, index) => (
-                  <div key={index} style={{ background: "rgba(255, 255, 255, 0.03)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                  <div key={index} style={{ background: "rgba(255, 255, 255, 0.03)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255, 255, 255, 0.08)", color: "#fff" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
                       {recruiterInfo?.companylogourl ? (
                         <img src={recruiterInfo.companylogourl} alt="Company logo" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />

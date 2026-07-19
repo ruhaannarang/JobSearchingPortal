@@ -2,11 +2,18 @@
   padding: 0;
   margin: 0;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  background-color: black;
   color: white;
+}
+
+html, body, #root {
+  background-color: black;
+  min-height: 100vh;
 }
 .content{
   /* background-color: black; */
+}
+.dropdown-item li{
+  background: none;
 }
 .homepage{
   display: flex;
@@ -253,6 +260,7 @@ textarea{
 .jobs-hero h1,
 .addjobtitle{
   color: gold;
+  font-size: x-large;
   margin-bottom: 8px;
 }
 
@@ -382,6 +390,8 @@ textarea{
 
 .addjob-card{
   max-width: 800px;
+  gap:15px;
+  margin: 0 auto;
 }
 
 .addjob-form{
@@ -399,6 +409,21 @@ textarea{
 .jobdetail label{
   color: gold;
   font-weight: 600;
+}
+
+.jobdetail input,
+.jobdetail select,
+.jobdetail textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.jobdetail input,
+.jobdetail select,
+.jobdetail textarea {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .job-detail-body{

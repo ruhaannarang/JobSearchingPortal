@@ -80,6 +80,8 @@ app.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         username: user.username,
+        phone: user.phone,
+        jobField: user.jobField,
         resumeUrl: user.resumeUrl,
         role: "jobseeker",
       },
@@ -108,6 +110,9 @@ app.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         username: user.username,
+        phone: user.phone,
+        companyname: user.companyname,
+        companylogourl: user.companylogourl,
         role: "recruiter",
       },
     });
