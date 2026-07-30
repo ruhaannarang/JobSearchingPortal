@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const AddJob = () => {
     const { user, loading } = useAuth();
+    const companyName = user?.companyname || user?.name || "";
     const username = user?.username || user?.name || "";
+    const Navigate = useNavigate();
     const [recruiterInfo, setRecruiterInfo] = useState(null);
     const [jobdata, setJobdata] = useState({
         title: "",
-        company: "",
+        company: companyName,
         location: "",
         salary: "",
         description: "",
@@ -52,6 +55,7 @@ const AddJob = () => {
             },
             body: JSON.stringify(payload),
         });
+        Navigate("/jobs");
     };
 
     if (loading) {
@@ -94,7 +98,7 @@ const AddJob = () => {
           <div className="jobinput">
             <div className="jobdetail">
               <label>Company Name</label>
-              <input type="text" placeholder="Company Name" onChange={(e) => setJobdata({...jobdata, company: e.target.value})} />
+              <input type="text" placeholder={companyName} value={companyName} readOnly />
             </div>
           </div>
           <div className="jobinput">

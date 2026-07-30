@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import express from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import nodemailer from "nodemailer";
 import { Jobs } from "./models/Jobs.js";
 import { authverify } from "./middleware/authverify.js";
 import jwt from "jsonwebtoken";
@@ -311,6 +312,160 @@ app.put("/api/recruiter/profile", authverify, async (req, res) => {
   } catch (err) {
     console.error("Error updating recruiter profile:", err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Helper to get Nodemailer transporter
+const getTransporter = async () => {
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    return nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+  }
+
+  try {
+    const testAccount = await nodemailer.createTestAccount();
+    return nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+  } catch (err) {
+    console.warn("Could not create Ethereal test account, using JSON transport fallback:", err.message);
+    return nodemailer.createTransport({
+      jsonTransport: true,
+    });
+  }
+};
+
+// Endpoint 1: Send Job Offer Email
+app.post("/api/send-offer-email", authverify, async (req, res) => {
+  try {
+    const { applicantEmail, applicantName, jobTitle, companyName, customNote } = req.body;
+
+    if (!applicantEmail) {
+      return res.status(400).json({ error: "Applicant email is required" });
+    }
+
+    const transporter = await getTransporter();
+    const sender = process.env.EMAIL_USER || `"Job Portal" <no-reply@jobportal.com>`;
+
+    const mailOptions = {
+      from: sender,
+      to: applicantEmail,
+      subject: `🎉 Job Offer: ${jobTitle || 'Position'} at ${companyName || 'Our Company'}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111827; color: #f9fafb; padding: 30px; border-radius: 12px; border: 1px solid #374151;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">Congratulations!</h1>
+            <p style="color: #9ca3af; font-size: 14px; margin-top: 4px;">Job Offer Letter</p>
+          </div>
+          <p style="font-size: 16px; color: #e5e7eb;">Dear <strong>${applicantName || 'Applicant'}</strong>,</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
+            We are thrilled to offer you the position of <strong>${jobTitle || 'the applied role'}</strong> at <strong>${companyName || 'our company'}</strong>!
+          </p>
+          ${customNote ? `
+            <div style="background-color: #1f2937; padding: 16px; border-left: 4px solid #fbbf24; border-radius: 6px; margin: 20px 0; color: #e5e7eb;">
+              <strong>Message from Recruiter:</strong><br/>
+              <p style="margin: 6px 0 0 0; color: #d1d5db; white-space: pre-wrap;">${customNote}</p>
+            </div>
+          ` : ''}
+          <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
+            We were very impressed with your background and skills, and we believe you will be a valuable addition to our team.
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
+            Please reply to this email to confirm your acceptance or if you have any questions.
+          </p>
+          <hr style="border: 0; border-top: 1px solid #374151; margin: 24px 0;" />
+          <p style="font-size: 12px; color: #9ca3af; text-align: center;">
+            Sent from ${companyName || 'Job Portal'} Recruitment Team
+          </p>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Offer email sent successfully:", info.messageId || info);
+
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+
+    res.json({
+      message: "Job offer email sent successfully!",
+      info: info.messageId || info,
+      previewUrl: previewUrl || null,
+    });
+  } catch (err) {
+    console.error("Error sending offer email:", err);
+    res.status(500).json({ error: err.message || "Failed to send offer email" });
+  }
+});
+
+// Endpoint 2: Send Rejection (Not Selected) Email
+app.post("/api/send-rejection-email", authverify, async (req, res) => {
+  try {
+    const { applicantEmail, applicantName, jobTitle, companyName, customNote } = req.body;
+
+    if (!applicantEmail) {
+      return res.status(400).json({ error: "Applicant email is required" });
+    }
+
+    const transporter = await getTransporter();
+    const sender = process.env.EMAIL_USER || `"Job Portal" <no-reply@jobportal.com>`;
+
+    const mailOptions = {
+      from: sender,
+      to: applicantEmail,
+      subject: `Application Update: ${jobTitle || 'Position'} at ${companyName || 'Our Company'}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111827; color: #f9fafb; padding: 30px; border-radius: 12px; border: 1px solid #374151;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #f87171; margin: 0; font-size: 22px;">Application Status Update</h1>
+          </div>
+          <p style="font-size: 16px; color: #e5e7eb;">Dear <strong>${applicantName || 'Applicant'}</strong>,</p>
+          <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
+            Thank you for taking the time to apply for the <strong>${jobTitle || 'position'}</strong> role at <strong>${companyName || 'our company'}</strong>.
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
+            After careful review of all applications, we regret to inform you that we have decided to move forward with other candidates for this position.
+          </p>
+          ${customNote ? `
+            <div style="background-color: #1f2937; padding: 16px; border-left: 4px solid #f87171; border-radius: 6px; margin: 20px 0; color: #e5e7eb;">
+              <strong>Message from Recruiter:</strong><br/>
+              <p style="margin: 6px 0 0 0; color: #d1d5db; white-space: pre-wrap;">${customNote}</p>
+            </div>
+          ` : ''}
+          <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
+            We sincerely appreciate your interest in joining our team and wish you the best of luck in your job search.
+          </p>
+          <hr style="border: 0; border-top: 1px solid #374151; margin: 24px 0;" />
+          <p style="font-size: 12px; color: #9ca3af; text-align: center;">
+            Sent from ${companyName || 'Job Portal'} Recruitment Team
+          </p>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Rejection email sent successfully:", info.messageId || info);
+
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+
+    res.json({
+      message: "Application status (Not Selected) email sent successfully!",
+      info: info.messageId || info,
+      previewUrl: previewUrl || null,
+    });
+  } catch (err) {
+    console.error("Error sending rejection email:", err);
+    res.status(500).json({ error: err.message || "Failed to send rejection email" });
   }
 });
 

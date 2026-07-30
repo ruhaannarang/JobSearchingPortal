@@ -10,7 +10,6 @@ const Login = () => {
   const {
     register,
     handleSubmit,
-    watch,
     reset,
     formState: { errors },
   } = useForm()
@@ -25,6 +24,9 @@ const Login = () => {
       setUser(res.data.user);
       if (res.data.user.role === "recruiter") {
         Navigate("/addjob");
+      }
+      if (res.data.user.role === "jobseeker") {
+        Navigate("/find-jobs");
       }
       reset()
       //will update after setting up backend for auth and when the homepage will be made
