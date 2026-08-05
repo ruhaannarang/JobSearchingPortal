@@ -315,21 +315,48 @@ app.put("/api/recruiter/profile", authverify, async (req, res) => {
   }
 });
 
-// Helper to get Nodemailer transporter
+// Email Algorithm Helpers
+const isValidEmail = (email) => {
+  if (!email || typeof email !== "string") return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+};
+
+const escapeHtml = (str) => {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
+let cachedTransporter = null;
+
+// Helper to get Nodemailer transporter with fallback and caching
 const getTransporter = async () => {
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    return nodemailer.createTransport({
+  if (cachedTransporter) return cachedTransporter;
+
+  if (
+    process.env.EMAIL_USER &&
+    process.env.EMAIL_PASS &&
+    process.env.EMAIL_PASS !== "JobSearchPortal" &&
+    process.env.EMAIL_PASS !== "your_app_password"
+  ) {
+    cachedTransporter = nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
+    return cachedTransporter;
   }
 
   try {
     const testAccount = await nodemailer.createTestAccount();
-    return nodemailer.createTransport({
+    cachedTransporter = nodemailer.createTransport({
       host: "smtp.ethereal.email",
       port: 587,
       secure: false,
@@ -338,11 +365,13 @@ const getTransporter = async () => {
         pass: testAccount.pass,
       },
     });
+    return cachedTransporter;
   } catch (err) {
     console.warn("Could not create Ethereal test account, using JSON transport fallback:", err.message);
-    return nodemailer.createTransport({
+    cachedTransporter = nodemailer.createTransport({
       jsonTransport: true,
     });
+    return cachedTransporter;
   }
 };
 
@@ -355,27 +384,36 @@ app.post("/api/send-offer-email", authverify, async (req, res) => {
       return res.status(400).json({ error: "Applicant email is required" });
     }
 
+    if (!isValidEmail(applicantEmail)) {
+      return res.status(400).json({ error: "Invalid applicant email address format" });
+    }
+
+    const safeName = escapeHtml(applicantName || 'Applicant');
+    const safeJob = escapeHtml(jobTitle || 'Position');
+    const safeCompany = escapeHtml(companyName || 'Our Company');
+    const safeNote = escapeHtml(customNote || '');
+
     const transporter = await getTransporter();
     const sender = process.env.EMAIL_USER || `"Job Portal" <no-reply@jobportal.com>`;
 
     const mailOptions = {
       from: sender,
       to: applicantEmail,
-      subject: `🎉 Job Offer: ${jobTitle || 'Position'} at ${companyName || 'Our Company'}`,
+      subject: `🎉 Job Offer: ${safeJob} at ${safeCompany}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111827; color: #f9fafb; padding: 30px; border-radius: 12px; border: 1px solid #374151;">
           <div style="text-align: center; margin-bottom: 24px;">
             <h1 style="color: #fbbf24; margin: 0; font-size: 24px;">Congratulations!</h1>
             <p style="color: #9ca3af; font-size: 14px; margin-top: 4px;">Job Offer Letter</p>
           </div>
-          <p style="font-size: 16px; color: #e5e7eb;">Dear <strong>${applicantName || 'Applicant'}</strong>,</p>
+          <p style="font-size: 16px; color: #e5e7eb;">Dear <strong>${safeName}</strong>,</p>
           <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
-            We are thrilled to offer you the position of <strong>${jobTitle || 'the applied role'}</strong> at <strong>${companyName || 'our company'}</strong>!
+            We are thrilled to offer you the position of <strong>${safeJob}</strong> at <strong>${safeCompany}</strong>!
           </p>
-          ${customNote ? `
+          ${safeNote ? `
             <div style="background-color: #1f2937; padding: 16px; border-left: 4px solid #fbbf24; border-radius: 6px; margin: 20px 0; color: #e5e7eb;">
               <strong>Message from Recruiter:</strong><br/>
-              <p style="margin: 6px 0 0 0; color: #d1d5db; white-space: pre-wrap;">${customNote}</p>
+              <p style="margin: 6px 0 0 0; color: #d1d5db; white-space: pre-wrap;">${safeNote}</p>
             </div>
           ` : ''}
           <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
@@ -386,7 +424,7 @@ app.post("/api/send-offer-email", authverify, async (req, res) => {
           </p>
           <hr style="border: 0; border-top: 1px solid #374151; margin: 24px 0;" />
           <p style="font-size: 12px; color: #9ca3af; text-align: center;">
-            Sent from ${companyName || 'Job Portal'} Recruitment Team
+            Sent from ${safeCompany} Recruitment Team
           </p>
         </div>
       `,
@@ -417,29 +455,38 @@ app.post("/api/send-rejection-email", authverify, async (req, res) => {
       return res.status(400).json({ error: "Applicant email is required" });
     }
 
+    if (!isValidEmail(applicantEmail)) {
+      return res.status(400).json({ error: "Invalid applicant email address format" });
+    }
+
+    const safeName = escapeHtml(applicantName || 'Applicant');
+    const safeJob = escapeHtml(jobTitle || 'Position');
+    const safeCompany = escapeHtml(companyName || 'Our Company');
+    const safeNote = escapeHtml(customNote || '');
+
     const transporter = await getTransporter();
     const sender = process.env.EMAIL_USER || `"Job Portal" <no-reply@jobportal.com>`;
 
     const mailOptions = {
       from: sender,
       to: applicantEmail,
-      subject: `Application Update: ${jobTitle || 'Position'} at ${companyName || 'Our Company'}`,
+      subject: `Application Update: ${safeJob} at ${safeCompany}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111827; color: #f9fafb; padding: 30px; border-radius: 12px; border: 1px solid #374151;">
           <div style="text-align: center; margin-bottom: 24px;">
             <h1 style="color: #f87171; margin: 0; font-size: 22px;">Application Status Update</h1>
           </div>
-          <p style="font-size: 16px; color: #e5e7eb;">Dear <strong>${applicantName || 'Applicant'}</strong>,</p>
+          <p style="font-size: 16px; color: #e5e7eb;">Dear <strong>${safeName}</strong>,</p>
           <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
-            Thank you for taking the time to apply for the <strong>${jobTitle || 'position'}</strong> role at <strong>${companyName || 'our company'}</strong>.
+            Thank you for taking the time to apply for the <strong>${safeJob}</strong> role at <strong>${safeCompany}</strong>.
           </p>
           <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
             After careful review of all applications, we regret to inform you that we have decided to move forward with other candidates for this position.
           </p>
-          ${customNote ? `
+          ${safeNote ? `
             <div style="background-color: #1f2937; padding: 16px; border-left: 4px solid #f87171; border-radius: 6px; margin: 20px 0; color: #e5e7eb;">
               <strong>Message from Recruiter:</strong><br/>
-              <p style="margin: 6px 0 0 0; color: #d1d5db; white-space: pre-wrap;">${customNote}</p>
+              <p style="margin: 6px 0 0 0; color: #d1d5db; white-space: pre-wrap;">${safeNote}</p>
             </div>
           ` : ''}
           <p style="font-size: 15px; line-height: 1.6; color: #d1d5db;">
@@ -447,7 +494,7 @@ app.post("/api/send-rejection-email", authverify, async (req, res) => {
           </p>
           <hr style="border: 0; border-top: 1px solid #374151; margin: 24px 0;" />
           <p style="font-size: 12px; color: #9ca3af; text-align: center;">
-            Sent from ${companyName || 'Job Portal'} Recruitment Team
+            Sent from ${safeCompany} Recruitment Team
           </p>
         </div>
       `,

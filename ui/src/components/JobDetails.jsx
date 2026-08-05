@@ -17,9 +17,27 @@ const JobDetails = () => {
   });
   const [sending, setSending] = useState(false);
   const [modalError, setModalError] = useState('');
-  const [statusMap, setStatusMap] = useState({});
+  // Email status map state loaded from localStorage if available
+  const [statusMap, setStatusMap] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`email_status_${id}`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   const hasApplicants = Array.isArray(job?.appliedBy) && job.appliedBy.length > 0;
+
+  useEffect(() => {
+    if (id && Object.keys(statusMap).length > 0) {
+      try {
+        localStorage.setItem(`email_status_${id}`, JSON.stringify(statusMap));
+      } catch (err) {
+        console.error("Error saving email status map:", err);
+      }
+    }
+  }, [id, statusMap]);
 
   useEffect(() => {
     if (!id) return;
@@ -191,78 +209,97 @@ const JobDetails = () => {
                       <div style={{ color: "#888", fontSize: "0.8rem", marginTop: "8px" }}>Applied on: {new Date(applicant.appliedAt).toLocaleDateString()}</div>
                     </div>
 
-                    {/* Email Action Buttons */}
+                    {/* Email Action Buttons or Status Badge */}
                     <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", gap: "8px" }}>
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        <button
-                          onClick={() => handleOpenEmailModal(applicant, 'offer')}
-                          style={{
-                            flex: 1,
-                            padding: "8px 12px",
-                            borderRadius: "8px",
-                            border: "none",
-                            background: "linear-gradient(135deg, #10b981, #059669)",
-                            color: "#ffffff",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            fontSize: "0.82rem",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "4px"
-                          }}
-                        >
-                          🎉 Send Offer
-                        </button>
-                        <button
-                          onClick={() => handleOpenEmailModal(applicant, 'rejection')}
-                          style={{
-                            flex: 1,
-                            padding: "8px 12px",
-                            borderRadius: "8px",
-                            border: "none",
-                            background: "linear-gradient(135deg, #ef4444, #dc2626)",
-                            color: "#ffffff",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            fontSize: "0.82rem",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "4px"
-                          }}
-                        >
-                          ❌ Not Selected
-                        </button>
-                      </div>
-
-                      {/* Status Feedback Badge */}
-                      {statusMap[applicant.email] && (
+                      {statusMap[applicant.email] && !statusMap[applicant.email].error ? (
+                        /* Email already sent: Hide action buttons and display status badge */
                         <div style={{
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          fontSize: "0.8rem",
-                          background: statusMap[applicant.email].error ? "rgba(239, 68, 68, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                          border: `1px solid ${statusMap[applicant.email].error ? '#ef4444' : '#10b981'}`,
-                          color: statusMap[applicant.email].error ? '#fca5a5' : '#6ee7b7'
+                          padding: "10px 12px",
+                          borderRadius: "8px",
+                          fontSize: "0.85rem",
+                          background: statusMap[applicant.email].type === 'offer' ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                          border: `1px solid ${statusMap[applicant.email].type === 'offer' ? '#10b981' : '#ef4444'}`,
+                          color: statusMap[applicant.email].type === 'offer' ? '#6ee7b7' : '#fca5a5'
                         }}>
-                          <div>
-                            {statusMap[applicant.email].error ? '⚠️ ' : '✅ '}
+                          <div style={{ fontWeight: "700", display: "flex", alignItems: "center", gap: "6px" }}>
+                            {statusMap[applicant.email].type === 'offer' ? '🎉 Offer Email Sent' : '❌ Not Selected Email Sent'}
+                          </div>
+                          <div style={{ marginTop: "4px", fontSize: "0.8rem", color: "#d1d5db" }}>
                             {statusMap[applicant.email].message}
                           </div>
                           {statusMap[applicant.email].previewUrl && (
-                            <div style={{ marginTop: "4px" }}>
+                            <div style={{ marginTop: "6px" }}>
                               <a
                                 href={statusMap[applicant.email].previewUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                style={{ color: "gold", textDecoration: "underline", fontWeight: "600" }}
+                                style={{ color: "gold", textDecoration: "underline", fontWeight: "600", fontSize: "0.8rem" }}
                               >
                                 🔗 View Sent Ethereal Mail
                               </a>
                             </div>
                           )}
                         </div>
+                      ) : (
+                        /* Email not sent yet or last attempt failed: Show action buttons */
+                        <>
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            <button
+                              onClick={() => handleOpenEmailModal(applicant, 'offer')}
+                              style={{
+                                flex: 1,
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                border: "none",
+                                background: "linear-gradient(135deg, #10b981, #059669)",
+                                color: "#ffffff",
+                                fontWeight: "bold",
+                                cursor: "pointer",
+                                fontSize: "0.82rem",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "4px"
+                              }}
+                            >
+                              🎉 Send Offer
+                            </button>
+                            <button
+                              onClick={() => handleOpenEmailModal(applicant, 'rejection')}
+                              style={{
+                                flex: 1,
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                border: "none",
+                                background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                                color: "#ffffff",
+                                fontWeight: "bold",
+                                cursor: "pointer",
+                                fontSize: "0.82rem",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "4px"
+                              }}
+                            >
+                              ❌ Not Selected
+                            </button>
+                          </div>
+
+                          {/* Show error badge if previous attempt failed */}
+                          {statusMap[applicant.email]?.error && (
+                            <div style={{
+                              padding: "8px 10px",
+                              borderRadius: "6px",
+                              fontSize: "0.8rem",
+                              background: "rgba(239, 68, 68, 0.15)",
+                              border: "1px solid #ef4444",
+                              color: "#fca5a5"
+                            }}>
+                              ⚠️ {statusMap[applicant.email].message}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
