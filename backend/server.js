@@ -10,6 +10,8 @@ import nodemailer from "nodemailer";
 import { Jobs } from "./models/Jobs.js";
 import { authverify } from "./middleware/authverify.js";
 import jwt from "jsonwebtoken";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { PDFParse } from "pdf-parse";
 dotenv.config();
 // await mongoose.connect("mongodb://localhost:27017/JobSearchPortal")
 await mongoose.connect(process.env.mongoURL);
@@ -23,8 +25,111 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
+const getGeminiModel = () => {
+  if (!process.env.GEMINI_API_KEY) {
+    return null;
+  }
+
+  return new ChatGoogleGenerativeAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    temperature: 0,
+  });
+};
+
+const cleanGeminiJson = (text) => {
+  if (!text) return null;
+  const trimmed = String(text).trim();
+  const afterFence = trimmed.replace(/```json\s*/i, '').replace(/```/g, '').trim();
+  return afterFence;
+};
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
+});
+
+app.post("/api/resume/ats-score", async (req, res) => {
+  try {
+    const { resumeUrl, jobDescription, jobTitle, jobId } = req.body;
+
+    if (!resumeUrl) {
+      return res.status(400).json({ error: "resumeUrl is required" });
+    }
+
+    const jobContext = jobDescription || '';
+    const targetJob = jobId ? await Jobs.findById(jobId) : null;
+    const mergedJobDescription = jobContext || targetJob?.description || '';
+
+    const resumeResponse = await fetch(resumeUrl);
+    if (!resumeResponse.ok) {
+      return res.status(400).json({ error: "Could not download the resume PDF from the resumeUrl" });
+    }
+
+    const resumeBuffer = Buffer.from(await resumeResponse.arrayBuffer());
+    const pdfParser = new PDFParse({ data: resumeBuffer });
+    const parsedPDF = await pdfParser.getText();
+    const resumeText = parsedPDF?.text || '';
+
+    if (!resumeText.trim()) {
+      return res.status(422).json({ error: "The uploaded resume could not be parsed into text" });
+    }
+
+    await pdfParser.destroy();
+
+    const ai = getGeminiModel();
+    if (!ai) {
+      return res.status(503).json({ error: "ATS scoring is unavailable because GEMINI_API_KEY is not configured" });
+    }
+
+    const prompt = `You are an ATS screening assistant.
+Analyse the resume text against the job description below and return strict JSON only.
+
+Request:
+- Return atsScore as a number between 0 and 100.
+- Return summary as a short paragraph.
+- Return fitLevel as one of: Excellent, Good, Moderate, Weak.
+- Return recommendations as an array of short recommendations for improving the resume.
+
+Job title: ${jobTitle || "Applied role"}
+Job description:
+${mergedJobDescription || "No job description provided"}
+
+Resume text:
+${resumeText}
+
+Required JSON schema:
+{
+  "atsScore": 0,
+  "summary": "",
+  "missingKeywords": [],
+  "fitLevel": "",
+  "recommendations": []
+}`;
+
+    const response = await ai.invoke(prompt);
+    const rawResponse = typeof response?.content === 'string'
+      ? response.content
+      : Array.isArray(response?.content)
+        ? response.content.map((part) => part?.text || part?.content || '').join('')
+        : String(response || '');
+
+    console.log('Gemini ATS raw response:', rawResponse);
+
+    const parsedJSON = JSON.parse(cleanGeminiJson(rawResponse));
+
+    return res.json({
+      message: "ATS score generated successfully",
+      ats: parsedJSON.atsScore,
+      fitLevel: parsedJSON.fitLevel,
+      summary: parsedJSON.summary,
+      missingKeywords: parsedJSON.missingKeywords || [],
+      recommendations: parsedJSON.recommendations || [],
+      parsedResumeWords: resumeText.trim().split(/\s+/).length,
+    });
+  } catch (err) {
+    console.error("Error generating ATS score:", err?.message || err);
+    return res.status(500).json({ error: err?.message || "ATS score generation failed" });
+  }
 });
 
 app.post("/jobSeekerData", async (req, res) => {

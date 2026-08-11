@@ -359,6 +359,7 @@ textarea{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 18px;
+  align-items: stretch;
 }
 
 .job-card{
@@ -366,6 +367,21 @@ textarea{
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 16px;
   padding: 18px;
+  min-height: 380px;
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.job-card .job-description {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 7;
+  -webkit-box-orient: vertical;
 }
 
 .job-card-header{

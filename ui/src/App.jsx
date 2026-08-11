@@ -1,6 +1,5 @@
 // import { useEffect } from "react";
 import "./App.css";
-import { useState } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import NavbarHome from "./components/NavbarHome";
 import NavbarJobSeeker from "./components/JobSeekerNavbar";
@@ -23,6 +22,7 @@ import EditProfile from "./components/EditProfile";
 import RecruiterProfile from "./components/RecruiterProfile";
 import RecruiterEditProfile from "./components/RecruiterEditProfile";
 import HomeRedirect from "./components/HomeRedirect";
+import ResumeAtsTester from "./components/ResumeAtsTester";
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 function App() {
@@ -62,6 +62,9 @@ function App() {
     },
     {path:"/edit-profile",
       element:<><NavbarJobSeeker/><EditProfile/></>
+    },
+    {path:"/resume-ats-tester",
+      element:<><NavbarJobSeeker/><ResumeAtsTester/></>
     },
     {path:"/jobs",
       element:<><NavbarRecruiter/><Jobs/></>

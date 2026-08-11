@@ -17,6 +17,9 @@ const JobDetails = () => {
   });
   const [sending, setSending] = useState(false);
   const [modalError, setModalError] = useState('');
+  const [atsMap, setAtsMap] = useState({});
+  const [checkingAts, setCheckingAts] = useState({});
+  const [reviewModal, setReviewModal] = useState({ isOpen: false, applicant: null, review: null });
   // Email status map state loaded from localStorage if available
   const [statusMap, setStatusMap] = useState(() => {
     try {
@@ -48,6 +51,25 @@ const JobDetails = () => {
         const data = await response.json();
         setJob(data);
 
+        if (data?.appliedBy?.length) {
+          const hydratedAtsMap = {};
+          data.appliedBy.forEach((applicant) => {
+            const key = applicant.email || applicant.name || applicant.username;
+            if (applicant.atsReview) {
+              hydratedAtsMap[key] = {
+                atsScore: applicant.atsReview.atsScore,
+                fitLevel: applicant.atsReview.fitLevel,
+                summary: applicant.atsReview.summary,
+                missingKeywords: applicant.atsReview.missingKeywords || [],
+                recommendations: applicant.atsReview.recommendations || [],
+                parsedResumeWords: applicant.atsReview.parsedResumeWords || 0,
+                cached: true
+              };
+            }
+          });
+          setAtsMap(hydratedAtsMap);
+        }
+
         if (data?.createdBy) {
           try {
             const recruiterResponse = await fetch(`http://localhost:5000/recruiter/${data.createdBy}`);
@@ -65,6 +87,80 @@ const JobDetails = () => {
 
     fetchJob();
   }, [id]);
+
+  const handleCheckAtsScore = async (applicant) => {
+    if (!applicant?.resumeUrl) {
+      return;
+    }
+
+    const key = applicant.email || applicant.name || applicant.username;
+    setCheckingAts((prev) => ({ ...prev, [key]: true }));
+
+    try {
+      const response = await fetch('http://localhost:5000/api/resume/ats-score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          resumeUrl: applicant.resumeUrl,
+          jobDescription: job?.description || '',
+          jobTitle: job?.title || '',
+          jobId: job?._id || job?.id || id
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate ATS score');
+      }
+
+      const reviewPayload = {
+        atsScore: data.ats,
+        fitLevel: data.fitLevel,
+        summary: data.summary,
+        missingKeywords: data.missingKeywords || [],
+        recommendations: data.recommendations || [],
+        parsedResumeWords: data.parsedResumeWords || 0,
+        cached: data.cached || false
+      };
+
+      setAtsMap((prev) => ({
+        ...prev,
+        [key]: reviewPayload
+      }));
+    } catch (error) {
+      console.error('ATS score error:', error);
+      setAtsMap((prev) => ({
+        ...prev,
+        [key]: {
+          error: error.message || 'Unable to calculate ATS score'
+        }
+      }));
+    } finally {
+      setCheckingAts((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const openReviewModal = (applicant) => {
+    const key = applicant.email || applicant.name || applicant.username;
+    const review = atsMap[key];
+
+    if (!review) {
+      return;
+    }
+
+    setReviewModal({
+      isOpen: true,
+      applicant,
+      review
+    });
+  };
+
+  const closeReviewModal = () => {
+    setReviewModal({ isOpen: false, applicant: null, review: null });
+  };
 
   const handleOpenEmailModal = (applicant, type) => {
     const defaultNote = type === 'offer'
@@ -207,6 +303,60 @@ const JobDetails = () => {
                         </div>
                       )}
                       <div style={{ color: "#888", fontSize: "0.8rem", marginTop: "8px" }}>Applied on: {new Date(applicant.appliedAt).toLocaleDateString()}</div>
+                      <div style={{ marginTop: "12px" }}>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <button
+                            type="button"
+                            onClick={() => handleCheckAtsScore(applicant)}
+                            disabled={checkingAts[applicant.email || applicant.name || applicant.username]}
+                            style={{
+                              padding: "7px 12px",
+                              borderRadius: "8px",
+                              border: "1px solid rgba(255,215,0,0.45)",
+                              background: "rgba(255,215,0,0.12)",
+                              color: "#fbbf24",
+                              fontSize: "0.74rem",
+                              fontWeight: "700",
+                              cursor: "pointer"
+                            }}>
+                            {checkingAts[applicant.email || applicant.name || applicant.username] ? 'Checking...' : 'Check ATS Score'}
+                          </button>
+
+                          {atsMap[applicant.email || applicant.name || applicant.username] &&
+                            !atsMap[applicant.email || applicant.name || applicant.username].error && (
+                              <button
+                                type="button"
+                                onClick={() => openReviewModal(applicant)}
+                                style={{
+                                  padding: "7px 12px",
+                                  borderRadius: "8px",
+                                  border: "1px solid rgba(255,255,255,0.2)",
+                                  background: "rgba(255,255,255,0.06)",
+                                  color: "#ffffff",
+                                  fontSize: "0.74rem",
+                                  fontWeight: "700",
+                                  cursor: "pointer"
+                                }}>
+                                More Detailed Review
+                              </button>
+                          )}
+                        </div>
+
+                        {atsMap[applicant.email || applicant.name || applicant.username] && (
+                          <div style={{ marginTop: "8px", fontSize: "0.78rem", color: "#ddd" }}>
+                            {atsMap[applicant.email || applicant.name || applicant.username].error ? (
+                              <span style={{ color: "#fca5a5" }}>{atsMap[applicant.email || applicant.name || applicant.username].error}</span>
+                            ) : (
+                              <span>
+                                <strong style={{ color: "#fbbf24" }}>ATS:</strong> {atsMap[applicant.email || applicant.name || applicant.username].atsScore}/100
+                                {atsMap[applicant.email || applicant.name || applicant.username].fitLevel && (
+                                  <span style={{ marginLeft: "6px" }}>({atsMap[applicant.email || applicant.name || applicant.username].fitLevel})</span>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Email Action Buttons or Status Badge */}
@@ -311,6 +461,95 @@ const JobDetails = () => {
           </div>
         )}
       </div>
+
+      <style>{`
+        .ats-review-scroll {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .ats-review-scroll::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+          display: none;
+        }
+      `}</style>
+
+      {/* Review Detail Modal Dialog */}
+      {reviewModal.isOpen && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.75)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: "20px"
+        }}>
+          <div style={{
+            background: "#111827",
+            border: "1px solid rgba(255, 215, 0, 0.3)",
+            borderRadius: "16px",
+            padding: "24px",
+            maxWidth: "620px",
+            width: "100%",
+            maxHeight: "82vh",
+            overflow: "hidden",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.5)",
+            color: "#ffffff"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "10px" }}>
+              <h3 style={{ color: "gold", margin: 0 }}>Detailed ATS Review</h3>
+              <button type="button" onClick={closeReviewModal} style={{ border: "none", background: "transparent", color: "#fff", cursor: "pointer", fontSize: "1.1rem" }}>×</button>
+            </div>
+
+            <div style={{ color: "#ddd", marginBottom: "12px" }}>
+              <span style={{ color: "gold", fontWeight: "700" }}>{reviewModal.applicant?.name}</span>
+              <span style={{ marginLeft: "8px" }}>({reviewModal.applicant?.email})</span>
+            </div>
+
+            <div className="ats-review-scroll" style={{ maxHeight: "58vh", overflowY: "auto", paddingRight: "6px" }}>
+              {reviewModal.review?.error ? (
+                <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.5)", padding: "12px", borderRadius: "8px", color: "#fca5a5" }}>
+                  {reviewModal.review.error}
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <div style={{ background: "rgba(255,215,0,0.08)", padding: "12px", borderRadius: "10px", border: "1px solid rgba(255,215,0,0.2)" }}>
+                    <div style={{ color: "#fbbf24", fontWeight: "750", fontSize: "1rem" }}>ATS Score: {reviewModal.review?.atsScore ?? 0}/100</div>
+                    <div style={{ color: "#ddd", marginTop: "6px" }}>Fit Level: {reviewModal.review?.fitLevel || 'Not available'}</div>
+                  </div>
+
+                  <div style={{ background: "rgba(255,255,255,0.04)", padding: "12px", borderRadius: "10px" }}>
+                    <div style={{ color: "gold", fontWeight: "700", marginBottom: "6px" }}>Summary</div>
+                    <p style={{ color: "#ddd", lineHeight: "1.6", margin: 0 }}>{reviewModal.review?.summary || 'No summary available'}</p>
+                  </div>
+
+                  <div style={{ background: "rgba(255,255,255,0.04)", padding: "12px", borderRadius: "10px" }}>
+                    <div style={{ color: "gold", fontWeight: "700", marginBottom: "6px" }}>Recommendations</div>
+                    <ul style={{ margin: 0, paddingLeft: "20px", color: "#ddd" }}>
+                      {(reviewModal.review?.recommendations || []).map((item, idx) => <li key={idx}>{item}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
+              <button
+                type="button"
+                onClick={closeReviewModal}
+                style={{ padding: "8px 14px", borderRadius: "8px", background: "gold", color: "#111", fontWeight: "700", border: "none", cursor: "pointer" }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Email Modal Dialog */}
       {emailModal.isOpen && (

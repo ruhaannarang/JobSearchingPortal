@@ -21,6 +21,7 @@ const JobSeekerNavbar = () => {
         <ul className='navbarOpt'>
           <NavLink className={(e) => e.isActive ? "white active" : "navItems"} to="/find-jobs"><li>Find Jobs</li></NavLink>
           <NavLink className={(e) => e.isActive ? "white active" : "navItems"} to="/applied-jobs"><li>Applied Jobs</li></NavLink>
+          <NavLink className={(e) => e.isActive ? "white active" : "navItems"} to="/resume-ats-tester"><li>Resume ATS Tester</li></NavLink>
           <li className="navItems profile-dropdown">
             <span style={{ cursor: "pointer", color: "gold", fontWeight: "bold" }}>Profile ▾</span>
             <div className="dropdown-menu">
