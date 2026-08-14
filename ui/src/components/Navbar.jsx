@@ -21,7 +21,6 @@ const Navbar = () => {
         <ul className='navbarOpt'>
           <NavLink className={(e) => e.isActive ? "white" : "navItems"} to="/"><li>Home</li></NavLink>
           <NavLink className={(e) => e.isActive ? "white" : "navItems"} to="/about"><li>About</li></NavLink>
-          <NavLink className={(e) => e.isActive ? "white" : "navItems"} to="/contact"><li>Contact</li></NavLink>
           
           {user?.role === "jobseeker" && (
             <NavLink className={(e) => e.isActive ? "white" : "navItems"} to="/find-jobs"><li>Find Jobs</li></NavLink>

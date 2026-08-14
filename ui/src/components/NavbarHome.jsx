@@ -21,7 +21,6 @@ const NavbarHome = () => {
         <ul className='navbarOpt'>
           <NavLink className={(e) => e.isActive ? "white active" : "navItems"} to="/"><li>Home</li></NavLink>
           <NavLink className={(e) => e.isActive ? "white active" : "navItems"} to="/about"><li>About</li></NavLink>
-          <NavLink className={(e) => e.isActive ? "white active" : "navItems"} to="/contact"><li>Contact</li></NavLink>
           {user ? (
             <li className="navItems profile-dropdown">
               <span style={{ cursor: "pointer", color: "gold", fontWeight: "bold" }}>Profile ▾</span>

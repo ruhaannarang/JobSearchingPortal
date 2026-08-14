@@ -6,7 +6,6 @@ import NavbarJobSeeker from "./components/JobSeekerNavbar";
 import NavbarRecruiter from "./components/RecruiterNavbar";
 import Home from "./components/Home";
 import About from "./components/About";
-import Contact from "./components/Contact";
 import SignUp from "./components/SignUp";
 import JobDetails from "./components/JobDetails";
 import Login from "./components/Login";
@@ -33,9 +32,7 @@ function App() {
     {path:"/about",
       element:<><NavbarHome/><About/></>
     },
-    {path:"/Contact",
-      element:<><NavbarHome/><Contact/></>
-    },
+    /* Contact page removed */
     {path:"/signup",
       element:<><NavbarHome/><SignUp/></>
     },
