@@ -139,10 +139,10 @@
   .navbarOpt {
     display: none;
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
     width: 100%;
     gap: 8px;
-    padding: 10px 0;
+    padding: 8px 12px;
   }
 
   .navbar-menu.open .navbarOpt {
@@ -164,9 +164,17 @@
   .white {
     display: flex;
     width: 100%;
-    justify-content: center;
-    padding: 12px 10px;
+    justify-content: flex-start;
+    padding: 12px 14px;
     border-radius: 8px;
+    box-sizing: border-box;
+  }
+
+  /* reduce large spacing for menu items and keep text left-aligned */
+  .navbarOpt li {
+    width: 100%;
+    text-align: left;
+    padding-left: 6px;
   }
 
   .profile-dropdown .dropdown-menu {
