@@ -28,7 +28,7 @@ const RecruiterProfile = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/getuser", {
+        const response = await fetch("https://jobsearchingportal.onrender.com/getuser", {
           headers: {
             "Authorization": `Bearer ${token}`
           }

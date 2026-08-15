@@ -58,7 +58,7 @@ const RecruiterSignUp = () => {
   const onSubmit = async (RecruiterData) => {
     const { confirmpassword: _, ...dataToSend } = RecruiterData
     const res = await axios.post(
-      "http://localhost:5000/recruiterData",
+      "https://jobsearchingportal.onrender.com/recruiterData",
       dataToSend,
     );
     console.log(res.data);

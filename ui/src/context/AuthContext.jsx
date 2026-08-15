@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
-        fetch("http://localhost:5000/getuser", {
+        fetch("https://jobsearchingportal.onrender.com/getuser", {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

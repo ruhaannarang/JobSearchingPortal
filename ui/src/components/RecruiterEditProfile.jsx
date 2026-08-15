@@ -67,7 +67,7 @@ const RecruiterEditProfile = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        "http://localhost:5000/api/recruiter/profile",
+        "https://jobsearchingportal.onrender.com/api/recruiter/profile",
         formData,
         {
           headers: {

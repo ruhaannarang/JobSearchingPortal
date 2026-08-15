@@ -28,7 +28,7 @@ const AddJob = () => {
 
         const fetchRecruiterInfo = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/recruiter/${username}`);
+                const response = await fetch(`https://jobsearchingportal.onrender.com/recruiter/${username}`);
                 if (response.ok) {
                     setRecruiterInfo(await response.json());
                 }
@@ -48,7 +48,7 @@ const AddJob = () => {
             createdBy: user?.username || user?.name || username,
         };
 
-        await fetch("http://localhost:5000/api/jobs", {
+        await fetch("https://jobsearchingportal.onrender.com/api/jobs", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

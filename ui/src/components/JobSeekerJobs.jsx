@@ -34,7 +34,7 @@ const JobSeekerJobs = () => {
     requestedUsernamesRef.current.add(username);
 
     try {
-      const response = await fetch(`http://localhost:5000/recruiter/${username}`);
+      const response = await fetch(`https://jobsearchingportal.onrender.com/recruiter/${username}`);
       if (response.ok) {
         const data = await response.json();
         setRecruiterProfiles((prev) => ({ ...prev, [username]: data }));
@@ -48,7 +48,7 @@ const JobSeekerJobs = () => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/api/jobs");
+        const response = await fetch("https://jobsearchingportal.onrender.com/api/jobs");
         if (response.ok) {
           const data = await response.json();
           const sorted = data.sort(
@@ -56,8 +56,17 @@ const JobSeekerJobs = () => {
           );
           setJobs(sorted);
           await Promise.all(sorted.filter(job => job.createdBy).map(job => fetchRecruiterProfile(job.createdBy)));
-          if (sorted.length > 0) {
-            setSelectedJob(sorted[0]);
+          // Auto-select first job only on larger screens. On mobile, keep details hidden until user taps a job.
+          try {
+            const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+            if (sorted.length > 0 && !isMobile) {
+              setSelectedJob(sorted[0]);
+            } else {
+              setSelectedJob(null);
+            }
+          } catch (e) {
+            // Fallback: if window isn't available, default to selecting the first job
+            if (sorted.length > 0) setSelectedJob(sorted[0]);
           }
         }
       } catch (err) {
@@ -93,7 +102,7 @@ const JobSeekerJobs = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/jobs/${jobId}/apply`, {
+      const response = await fetch(`https://jobsearchingportal.onrender.com/api/jobs/${jobId}/apply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -404,14 +413,13 @@ const JobSeekerJobs = () => {
               setMessage("");
               setError("");
               // Automatically select the first filtered job if any
-              const filtered = domain === "All"
-                ? jobs
-                : jobs.filter(j => j.domain === domain);
-              if (filtered.length > 0) {
-                setSelectedJob(filtered[0]);
-              } else {
-                setSelectedJob(null);
-              }
+                const filtered = domain === "All" ? jobs : jobs.filter(j => j.domain === domain);
+                const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+                if (filtered.length > 0 && !isMobile) {
+                  setSelectedJob(filtered[0]);
+                } else {
+                  setSelectedJob(null);
+                }
             }}
           >
             {domain}

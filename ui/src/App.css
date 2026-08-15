@@ -69,13 +69,14 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 90vh;
+  height: auto;
 }
 .signuppageheading{
   color: white;
-  font-size: 3rem;
-  font-weight: 400;
+  font-size: 1.8rem;
+  font-weight: 600;
   text-align: center;
+  margin-bottom: 8px;
 }
 .signUpFor{
   display: flex;
@@ -108,52 +109,58 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 90vh;
   gap: 30px;
+  max-width: 560px;
+  margin: 24px auto;
+  padding: 18px;
+  box-sizing: border-box;
   /* padding: 200px; */
   /* margin: 100px; */
 }
 .inputQ{
   display: flex;
-  width: 67%;
-  /* flex-direction: column; */
-  /* padding: 200px; */
-  align-items: center;
-  justify-content: space-between;
-  
+  flex-direction: column;
+  width: 100%;
+  gap: 12px;
+  align-items: stretch;
 }
 input, textarea, select{
-  padding: 10px 20px;
-  width: 300px;
+  padding: 10px 14px;
+  width: 100%;
+  max-width: 420px;
   background-color: white;
   color: black;
   border-radius: 5px;
   border: 0px;
   font-size: 1rem;
+  box-sizing: border-box;
 }
 
 textarea{
   width: 100%;
   min-height: 140px;
+  max-width: 420px;
 }
 .Submit{
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
+  padding: 10px 18px;
   background-color: white;
   color: black;
   border-radius: 25px;
   border: 0px;
-  font-weight: 400;
-  font-size: x-large;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
 }
 .red{
   color: red;
   padding-left: 10px;
 }
 #jobField{
-  padding: 10px 20px;
-  width: 340px;
+  padding: 10px 14px;
+  width: 100%;
+  max-width: 420px;
   background-color: white;
   color: black;
   border-radius: 5px;
@@ -216,17 +223,30 @@ textarea{
   color: gold;
   font-size: 2rem;
 }
+
+.loginNow { text-align: center; }
 .LoginContent{
   width: 100%;
-  /* height: 90vh; */
+  max-width: 560px;
   display: flex;
   align-items: center;
   flex-direction: column;
   justify-content: center;
-  gap: 50px;
+  gap: 28px;
+  margin: 0 auto;
+  padding: 12px;
+  box-sizing: border-box;
 }
 .inputQ h2{
-  font-size: 2rem;
+  font-size: 1.2rem;
+  margin: 0 0 6px 0;
+}
+
+/* Center inputs and selects inside the form */
+.LoginContent input,
+.LoginContent select,
+.LoginContent textarea {
+  margin: 0 auto;
 }
 
 .page-loading{
@@ -455,13 +475,79 @@ textarea{
 }
 
 @media (max-width: 768px) {
+  .homepage,
+  .homepagedown,
+  .login-signup,
+  .signUpFor,
+  .inputQ,
+  .LoginContent,
   .jobs-hero {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
+  }
+.RecruitersignUpPage{
+  gap: 10px;
+}
+  .homepagedown,
+  .homepage {
+    width: 100%;
+  }
+  
+  .siteDesc,
+  .keyfeatures {
+    width: 80%;
+    padding: 20px 16px;
+    border-left: none;
+    text-align: center;
+    border-top: 2px solid rgba(255,255,255,0.2);
+  }
+
+  .img-homepage {
+    width: 80%;
+    height: auto;
+    padding: 20px;
   }
 
   .company-summary-card {
     width: 100%;
+  }
+
+  .inputQ {
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .login-signup {
+    gap: 16px;
+  }
+
+  .login-signupOpt,
+  .signUpOptions,
+  .Submit {
+    width: 100%;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .intro {
+    font-size: 2rem;
+    padding: 20px 10px;
+  }
+
+  .signuppageheading,
+  .loginNow,
+  .SignUpDone {
+    font-size: 2rem;
+    width: 90%;
+  }
+
+  .signUpFor,
+  .login-signup {
+    width: 80%;
   }
 }
 
@@ -472,11 +558,18 @@ textarea{
   border-radius: 16px;
   padding: 28px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  margin-bottom: 24px;
 }
 
 .page-heading {
   color: gold;
   font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.page-card p,
+.about-container p,
+.contact-details p {
   margin-bottom: 12px;
 }
 
@@ -489,6 +582,8 @@ textarea{
   margin-left: 1.2rem;
   color: #d9d9d9;
 }
+
+.about-container ul li { margin-bottom: 8px; }
 
 .contact-container .contact-grid {
   display: flex;

@@ -79,7 +79,7 @@ const ResumeAtsTester = () => {
     setError("");
 
     try {
-      const response = await fetch('http://localhost:5000/api/resume/ats-score', {
+      const response = await fetch('https://jobsearchingportal.onrender.com/api/resume/ats-score', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -178,6 +178,7 @@ const ResumeAtsTester = () => {
           min-height: 160px;
           resize: vertical;
         }
+        /* Make the resume options wrap on small screens */
         .resume-option-row {
           display: flex;
           align-items: center;
@@ -292,6 +293,25 @@ const ResumeAtsTester = () => {
           border-radius: 10px;
           padding: 12px;
           margin-bottom: 12px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 820px) {
+          .resume-ats-page { padding: 16px; }
+          .resume-ats-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+          .resume-ats-layout { grid-template-columns: 1fr; }
+          .resume-ats-panel, .ats-result-card { min-height: auto; padding: 16px; }
+          .resume-option-row { flex-direction: column; align-items: stretch; }
+          .resume-option-row label { justify-content: flex-start; padding: 10px 8px; }
+          .form-group input, .form-group textarea { font-size: 0.95rem; }
+          .btn-ats { width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+          .resume-ats-header h1 { font-size: 1.6rem; }
+          .resume-ats-panel, .ats-result-card { padding: 12px; border-radius: 12px; }
+          .ats-detail-block { max-height: 180px; }
+          .resume-preview { font-size: 0.85rem; }
         }
       `}</style>
 

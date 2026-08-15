@@ -47,7 +47,7 @@ const JobDetails = () => {
 
     const fetchJob = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/jobs/${id}`);
+        const response = await fetch(`https://jobsearchingportal.onrender.com/jobs/${id}`);
         const data = await response.json();
         setJob(data);
 
@@ -72,7 +72,7 @@ const JobDetails = () => {
 
         if (data?.createdBy) {
           try {
-            const recruiterResponse = await fetch(`http://localhost:5000/recruiter/${data.createdBy}`);
+            const recruiterResponse = await fetch(`https://jobsearchingportal.onrender.com/recruiter/${data.createdBy}`);
             if (recruiterResponse.ok) {
               setRecruiterInfo(await recruiterResponse.json());
             }
@@ -97,7 +97,7 @@ const JobDetails = () => {
     setCheckingAts((prev) => ({ ...prev, [key]: true }));
 
     try {
-      const response = await fetch('http://localhost:5000/api/resume/ats-score', {
+      const response = await fetch('https://jobsearchingportal.onrender.com/api/resume/ats-score', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -197,8 +197,8 @@ const JobDetails = () => {
     setModalError('');
 
     const endpoint = type === 'offer' 
-      ? 'http://localhost:5000/api/send-offer-email' 
-      : 'http://localhost:5000/api/send-rejection-email';
+    ? 'https://jobsearchingportal.onrender.com/api/send-offer-email' 
+    : 'https://jobsearchingportal.onrender.com/api/send-rejection-email';
 
     const token = localStorage.getItem("token");
 

@@ -17,7 +17,7 @@ const Login = () => {
   const onSubmit =async (loginCreds) => {
     try {
       console.log(loginCreds)
-      const res=await axios.post("http://localhost:5000/login",loginCreds)
+      const res=await axios.post("https://jobsearchingportal.onrender.com/login",loginCreds)
       console.log(res.data)
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));

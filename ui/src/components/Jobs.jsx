@@ -18,7 +18,7 @@ const Jobs = () => {
 
         const fetchRecruiterInfo = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/recruiter/${username}`);
+                const response = await fetch(`https://jobsearchingportal.onrender.com/recruiter/${username}`);
                 if (response.ok) {
                     const data = await response.json();
                     setRecruiterInfo(data);
@@ -29,7 +29,7 @@ const Jobs = () => {
         };
 
         const fetchJobs = async () => {
-            const response = await fetch(`http://localhost:5000/myjobs/${username}`);
+            const response = await fetch(`https://jobsearchingportal.onrender.com/myjobs/${username}`);
             const data = await response.json();
             setJobs(data);
         };

@@ -65,7 +65,7 @@ const JobSeekerSignUp = () => {
 
   const onSubmit = async (jobSeekerData) => {
     const { confirmpassword: _, ...dataToSend } = jobSeekerData
-    const res= await axios.post('http://localhost:5000/jobSeekerData', dataToSend)
+    const res= await axios.post('https://jobsearchingportal.onrender.com/jobSeekerData', dataToSend)
     console.log(res.data)
     reset();
     navigate("/signup-done")

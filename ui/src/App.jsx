@@ -82,7 +82,7 @@ function App() {
   // const [data, setData] = useState({});
   // useEffect(() => {
   //   async function fetchData() {
-  //     const response = await fetch("http://localhost:5000/api");
+  //     const response = await fetch("https://jobsearchingportal.onrender.com/api");
   //     const data = await response.json();
   //     console.log(data);
   //     setData(data);

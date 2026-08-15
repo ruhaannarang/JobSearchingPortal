@@ -18,7 +18,7 @@ const AppliedJobs = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/jobseeker/applied-jobs", {
+        const response = await fetch("https://jobsearchingportal.onrender.com/api/jobseeker/applied-jobs", {
           headers: {
             "Authorization": `Bearer ${token}`
           }
