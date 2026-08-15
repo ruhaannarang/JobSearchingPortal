@@ -13,6 +13,10 @@ import { authverify } from "./middleware/authverify.js";
 import jwt from "jsonwebtoken";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PDFParse } from "pdf-parse";
+
+dns.setDefaultResultOrder("ipv4first");
+
+
 dotenv.config();
 
 // Prefer IPv4 DNS resolution to avoid ENETUNREACH errors when IPv6 is not available
@@ -460,6 +464,7 @@ const getTransporter = () => {
       host: "smtp.gmail.com",
       port: 587,
       secure: false,
+      family: 4,
       requireTLS: true,
       auth: {
         user: process.env.EMAIL_USER,
