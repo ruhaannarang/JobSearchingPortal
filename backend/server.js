@@ -7,12 +7,23 @@ import express from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
+import dns from "dns";
 import { Jobs } from "./models/Jobs.js";
 import { authverify } from "./middleware/authverify.js";
 import jwt from "jsonwebtoken";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PDFParse } from "pdf-parse";
 dotenv.config();
+
+// Prefer IPv4 DNS resolution to avoid ENETUNREACH errors when IPv6 is not available
+if (dns && typeof dns.setDefaultResultOrder === 'function') {
+  try {
+    dns.setDefaultResultOrder('ipv4first');
+  } catch (e) {
+    console.warn('Could not set DNS result order:', e && e.message);
+  }
+}
+
 // await mongoose.connect("mongodb://localhost:27017/JobSearchPortal")
 await mongoose.connect(process.env.mongoURL);
 import { recruiterData } from "./models/RecruiterData.js";
