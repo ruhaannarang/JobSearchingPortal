@@ -450,48 +450,25 @@ const escapeHtml = (str) => {
 
 let cachedTransporter = null;
 
-// Helper to get Nodemailer transporter with fallback and caching
-const getTransporter = async () => {
-  if (cachedTransporter) return cachedTransporter;
-
-  if (
-    process.env.EMAIL_USER &&
-    process.env.EMAIL_PASS &&
-    process.env.EMAIL_PASS !== "JobSearchPortal" &&
-    process.env.EMAIL_PASS !== "your_app_password"
-  ) {
-    cachedTransporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  requireTLS: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-    return cachedTransporter;
+const getTransporter = () => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error("EMAIL_USER and EMAIL_PASS are not configured");
   }
 
-  try {
-    const testAccount = await nodemailer.createTestAccount();
+  if (!cachedTransporter) {
     cachedTransporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
+      host: "smtp.gmail.com",
       port: 587,
       secure: false,
+      requireTLS: true,
       auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
-    return cachedTransporter;
-  } catch (err) {
-    console.warn("Could not create Ethereal test account, using JSON transport fallback:", err.message);
-    cachedTransporter = nodemailer.createTransport({
-      jsonTransport: true,
-    });
-    return cachedTransporter;
   }
+
+  return cachedTransporter;
 };
 
 // Endpoint 1: Send Job Offer Email
