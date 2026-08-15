@@ -170,12 +170,17 @@
   }
 
   .profile-dropdown .dropdown-menu {
-    position: static;
+    /* keep dropdown overlayed, do not expand the navbar */
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 16px;
+    left: auto;
     display: none;
-    width: 100%;
-    margin-top: 8px;
-    min-width: 0;
+    min-width: 180px;
+    width: auto;
+    margin-top: 0;
     border-radius: 8px;
+    z-index: 1200;
   }
 
   .navbar-menu.open .profile-dropdown .dropdown-menu {
