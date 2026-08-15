@@ -149,6 +149,12 @@
     display: flex;
   }
 
+  /* Ensure the menu container itself becomes visible when opened */
+  .navbar-menu.open {
+    display: block;
+    z-index: 1100;
+  }
+
   .mobile-menu-toggle {
     display: block;
     width: auto;
