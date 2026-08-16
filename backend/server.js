@@ -460,7 +460,38 @@ const getResendClient = () => {
   return new Resend(process.env.RESEND_API_KEY);
 };
 
-const getResendFromAddress = () => process.env.RESEND_FROM_EMAIL || "Job Portal <onboarding@resend.dev>";
+const sanitizeFromAddress = (raw) => {
+  if (!raw) return null;
+  let s = String(raw).trim();
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.slice(1, -1).trim();
+  }
+
+  // If in the form: Name <email@domain>
+  const match = s.match(/^(.*)<([^>]+)>$/);
+  if (match) {
+    const name = match[1].trim().replace(/^"|"$/g, '').trim();
+    const email = match[2].trim();
+    if (isValidEmail(email)) {
+      return name ? `${name} <${email}>` : email;
+    }
+    return null;
+  }
+
+  // Otherwise raw should be just an email
+  if (isValidEmail(s)) return s;
+  return null;
+};
+
+const getResendFromAddress = () => {
+  const raw = process.env.RESEND_FROM_EMAIL;
+  const sanitized = sanitizeFromAddress(raw);
+  if (!sanitized) {
+    // Fallback to a safe default
+    return 'Job Portal <onboarding@resend.dev>';
+  }
+  return sanitized;
+};
 
 // Endpoint 1: Send Job Offer Email
 app.post("/api/send-offer-email", authverify, async (req, res) => {
@@ -482,6 +513,7 @@ app.post("/api/send-offer-email", authverify, async (req, res) => {
 
     const resend = getResendClient();
     const sender = getResendFromAddress();
+    console.log('Resolved sender for offer email:', sender);
 
     const emailPayload = {
       from: sender,
@@ -518,11 +550,9 @@ app.post("/api/send-offer-email", authverify, async (req, res) => {
     };
 
     const { data, error } = await resend.emails.send(emailPayload);
-
     if (error) {
       throw new Error(error.message || "Failed to send offer email");
     }
-
     console.log("Offer email sent successfully:", data?.id || data);
 
     res.json({
@@ -556,6 +586,7 @@ app.post("/api/send-rejection-email", authverify, async (req, res) => {
 
     const resend = getResendClient();
     const sender = getResendFromAddress();
+    console.log('Resolved sender for rejection email:', sender);
 
     const emailPayload = {
       from: sender,
