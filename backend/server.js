@@ -6,8 +6,8 @@ import mongoose from "mongoose";
 import express from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import nodemailer from "nodemailer";
 import dns from "dns";
+import { Resend } from "resend";
 import { Jobs } from "./models/Jobs.js";
 import { authverify } from "./middleware/authverify.js";
 import jwt from "jsonwebtoken";
@@ -452,29 +452,15 @@ const escapeHtml = (str) => {
     .replace(/'/g, "&#039;");
 };
 
-let cachedTransporter = null;
-
-const getTransporter = () => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error("EMAIL_USER and EMAIL_PASS are not configured");
+const getResendClient = () => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not configured");
   }
 
-  if (!cachedTransporter) {
-    cachedTransporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      family: 4,
-      requireTLS: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-  }
-
-  return cachedTransporter;
+  return new Resend(process.env.RESEND_API_KEY);
 };
+
+const getResendFromAddress = () => process.env.RESEND_FROM_EMAIL || "Job Portal <onboarding@resend.dev>";
 
 // Endpoint 1: Send Job Offer Email
 app.post("/api/send-offer-email", authverify, async (req, res) => {
@@ -494,10 +480,10 @@ app.post("/api/send-offer-email", authverify, async (req, res) => {
     const safeCompany = escapeHtml(companyName || 'Our Company');
     const safeNote = escapeHtml(customNote || '');
 
-    const transporter = await getTransporter();
-    const sender = process.env.EMAIL_USER || `"Job Portal" <no-reply@jobportal.com>`;
+    const resend = getResendClient();
+    const sender = getResendFromAddress();
 
-    const mailOptions = {
+    const emailPayload = {
       from: sender,
       to: applicantEmail,
       subject: `🎉 Job Offer: ${safeJob} at ${safeCompany}`,
@@ -531,15 +517,18 @@ app.post("/api/send-offer-email", authverify, async (req, res) => {
       `,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Offer email sent successfully:", info.messageId || info);
+    const { data, error } = await resend.emails.send(emailPayload);
 
-    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (error) {
+      throw new Error(error.message || "Failed to send offer email");
+    }
+
+    console.log("Offer email sent successfully:", data?.id || data);
 
     res.json({
       message: "Job offer email sent successfully!",
-      info: info.messageId || info,
-      previewUrl: previewUrl || null,
+      info: data?.id || data || null,
+      previewUrl: null,
     });
   } catch (err) {
     console.error("Error sending offer email:", err);
@@ -565,10 +554,10 @@ app.post("/api/send-rejection-email", authverify, async (req, res) => {
     const safeCompany = escapeHtml(companyName || 'Our Company');
     const safeNote = escapeHtml(customNote || '');
 
-    const transporter = await getTransporter();
-    const sender = process.env.EMAIL_USER || `"Job Portal" <no-reply@jobportal.com>`;
+    const resend = getResendClient();
+    const sender = getResendFromAddress();
 
-    const mailOptions = {
+    const emailPayload = {
       from: sender,
       to: applicantEmail,
       subject: `Application Update: ${safeJob} at ${safeCompany}`,
@@ -601,15 +590,18 @@ app.post("/api/send-rejection-email", authverify, async (req, res) => {
       `,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Rejection email sent successfully:", info.messageId || info);
+    const { data, error } = await resend.emails.send(emailPayload);
 
-    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (error) {
+      throw new Error(error.message || "Failed to send rejection email");
+    }
+
+    console.log("Rejection email sent successfully:", data?.id || data);
 
     res.json({
       message: "Application status (Not Selected) email sent successfully!",
-      info: info.messageId || info,
-      previewUrl: previewUrl || null,
+      info: data?.id || data || null,
+      previewUrl: null,
     });
   } catch (err) {
     console.error("Error sending rejection email:", err);
