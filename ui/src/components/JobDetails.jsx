@@ -195,12 +195,11 @@ const JobDetails = () => {
 
     setSending(true);
     setModalError('');
-
-    const endpoint = type === 'offer' 
-    ? 'https://jobsearchingportal.onrender.com/api/send-offer-email' 
-    : 'https://jobsearchingportal.onrender.com/api/send-rejection-email';
-
+    // For now, instead of sending emails, update applicant status in the DB
+    const endpoint = `https://jobsearchingportal.onrender.com/api/jobs/${job?._id || id}/applicants/${encodeURIComponent(applicant.email)}/status`;
     const token = localStorage.getItem("token");
+
+    const action = type === 'offer' ? 'accepted' : 'rejected';
 
     try {
       const response = await fetch(endpoint, {
@@ -209,35 +208,36 @@ const JobDetails = () => {
           'Content-Type': 'application/json',
           'Authorization': token ? `Bearer ${token}` : ''
         },
-        body: JSON.stringify({
-          applicantEmail: applicant.email,
-          applicantName: applicant.name,
-          jobTitle: job?.title || '',
-          companyName: job?.company || '',
-          customNote: customNote
-        })
+        body: JSON.stringify({ action, customNote })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send email');
+        throw new Error(data.error || 'Failed to update applicant status');
       }
 
       setStatusMap((prev) => ({
         ...prev,
         [applicant.email]: {
-          type,
-          message: data.message || 'Email sent successfully!',
-          previewUrl: data.previewUrl || null,
+          status: action,
+          message: data.message || (action === 'accepted' ? 'Applicant accepted' : 'Applicant rejected'),
           error: false
         }
       }));
 
       handleCloseEmailModal();
     } catch (err) {
-      console.error('Error sending email:', err);
-      setModalError(err.message || 'An error occurred while sending email');
+      console.error('Error updating applicant status:', err);
+      setModalError(err.message || 'An error occurred while updating status');
+      setStatusMap((prev) => ({
+        ...prev,
+        [applicant.email]: {
+          status: null,
+          message: err.message || 'Update failed',
+          error: true
+        }
+      }));
     } finally {
       setSending(false);
     }
@@ -362,33 +362,21 @@ const JobDetails = () => {
                     {/* Email Action Buttons or Status Badge */}
                     <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", gap: "8px" }}>
                       {statusMap[applicant.email] && !statusMap[applicant.email].error ? (
-                        /* Email already sent: Hide action buttons and display status badge */
+                        /* Status already set: Hide action buttons and display status badge */
                         <div style={{
                           padding: "10px 12px",
                           borderRadius: "8px",
                           fontSize: "0.85rem",
-                          background: statusMap[applicant.email].type === 'offer' ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
-                          border: `1px solid ${statusMap[applicant.email].type === 'offer' ? '#10b981' : '#ef4444'}`,
-                          color: statusMap[applicant.email].type === 'offer' ? '#6ee7b7' : '#fca5a5'
+                          background: statusMap[applicant.email].status === 'accepted' ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                          border: `1px solid ${statusMap[applicant.email].status === 'accepted' ? '#10b981' : '#ef4444'}`,
+                          color: statusMap[applicant.email].status === 'accepted' ? '#6ee7b7' : '#fca5a5'
                         }}>
                           <div style={{ fontWeight: "700", display: "flex", alignItems: "center", gap: "6px" }}>
-                            {statusMap[applicant.email].type === 'offer' ? '🎉 Offer Email Sent' : '❌ Not Selected Email Sent'}
+                            {statusMap[applicant.email].status === 'accepted' ? '🎉 Applicant Accepted' : '❌ Applicant Rejected'}
                           </div>
                           <div style={{ marginTop: "4px", fontSize: "0.8rem", color: "#d1d5db" }}>
                             {statusMap[applicant.email].message}
                           </div>
-                          {statusMap[applicant.email].previewUrl && (
-                            <div style={{ marginTop: "6px" }}>
-                              <a
-                                href={statusMap[applicant.email].previewUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ color: "gold", textDecoration: "underline", fontWeight: "600", fontSize: "0.8rem" }}
-                              >
-                                🔗 View Sent Ethereal Mail
-                              </a>
-                            </div>
-                          )}
                         </div>
                       ) : (
                         /* Email not sent yet or last attempt failed: Show action buttons */
@@ -412,7 +400,7 @@ const JobDetails = () => {
                                 gap: "4px"
                               }}
                             >
-                              🎉 Send Offer
+                              ✅ Accept
                             </button>
                             <button
                               onClick={() => handleOpenEmailModal(applicant, 'rejection')}
@@ -432,7 +420,7 @@ const JobDetails = () => {
                                 gap: "4px"
                               }}
                             >
-                              ❌ Not Selected
+                              ⛔ Reject
                             </button>
                           </div>
 
@@ -578,10 +566,10 @@ const JobDetails = () => {
             color: "#ffffff"
           }}>
             <h3 style={{ color: emailModal.type === 'offer' ? '#10b981' : '#ef4444', marginBottom: "8px", fontSize: "1.3rem" }}>
-              {emailModal.type === 'offer' ? '🎉 Send Job Offer Email' : '❌ Send Not Selected Email'}
+              {emailModal.type === 'offer' ? '🎉 Confirm Accept Applicant' : '❌ Confirm Reject Applicant'}
             </h3>
             <p style={{ color: "#9ca3af", fontSize: "0.9rem", marginBottom: "16px" }}>
-              Sending email to <strong style={{ color: "gold" }}>{emailModal.applicant?.name}</strong> ({emailModal.applicant?.email})
+              This action will mark <strong style={{ color: "gold" }}>{emailModal.applicant?.name}</strong> ({emailModal.applicant?.email}) as <strong>{emailModal.type === 'offer' ? 'accepted' : 'rejected'}</strong> for this job. (Email sending is disabled for now.)
             </p>
 
             {modalError && (
@@ -647,7 +635,7 @@ const JobDetails = () => {
                   opacity: sending ? 0.7 : 1
                 }}
               >
-                {sending ? 'Sending...' : 'Send Email'}
+                {sending ? (emailModal.type === 'offer' ? 'Accepting...' : 'Rejecting...') : (emailModal.type === 'offer' ? 'Accept Applicant' : 'Reject Applicant')}
               </button>
             </div>
           </div>

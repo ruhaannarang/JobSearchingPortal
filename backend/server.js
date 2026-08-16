@@ -487,11 +487,25 @@ const getResendFromAddress = () => {
   const raw = process.env.RESEND_FROM_EMAIL;
   const sanitized = sanitizeFromAddress(raw);
   if (!sanitized) {
-    // Fallback to a safe default
-    return 'Job Portal <onboarding@resend.dev>';
+    throw new Error('RESEND_FROM_EMAIL is not configured or is invalid. It must be in the format "Name <email@example.com>" or "email@example.com"');
   }
   return sanitized;
 };
+
+// Validate required email environment variables at startup
+try {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY must be configured in environment variables');
+  }
+
+  // Validate and normalize RESEND_FROM_EMAIL once at startup so errors are loud and early
+  const normalizedFrom = getResendFromAddress();
+  console.log('Using RESEND_FROM_EMAIL:', normalizedFrom);
+} catch (err) {
+  console.error('Email configuration error:', err.message || err);
+  // Fail fast to avoid running without proper email config
+  process.exit(1);
+}
 
 // Endpoint 1: Send Job Offer Email
 app.post("/api/send-offer-email", authverify, async (req, res) => {
@@ -637,6 +651,67 @@ app.post("/api/send-rejection-email", authverify, async (req, res) => {
   } catch (err) {
     console.error("Error sending rejection email:", err);
     res.status(500).json({ error: err.message || "Failed to send rejection email" });
+  }
+});
+
+// Endpoint: Set applicant status (accept or reject) — updates job and jobseeker records
+app.post('/api/jobs/:jobId/applicants/:applicantEmail/status', authverify, async (req, res) => {
+  try {
+    if (req.user.role !== 'recruiter') {
+      return res.status(403).json({ error: 'Only recruiters can change applicant status' });
+    }
+
+    const { jobId, applicantEmail } = req.params;
+    const { action, customNote } = req.body; // action: 'accepted' or 'rejected'
+
+    if (!['accepted', 'rejected'].includes(action)) {
+      return res.status(400).json({ error: 'Invalid action. Must be "accepted" or "rejected"' });
+    }
+
+    const job = await Jobs.findById(jobId);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+
+    // Ensure the recruiter owns this job (or allow if recruiter admin)
+    if (String(job.createdBy).toLowerCase() !== String(req.user.username).toLowerCase() && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'You are not authorized to modify applicants for this job' });
+    }
+
+    // Update appliedBy entry
+    let updated = false;
+    if (Array.isArray(job.appliedBy)) {
+      for (const app of job.appliedBy) {
+        if (app.email && app.email.toLowerCase() === applicantEmail.toLowerCase()) {
+          app.status = action;
+          app.decisionAt = new Date();
+          app.decisionBy = req.user.username || req.user.name || req.user.id;
+          if (customNote) app.recruiterNote = customNote;
+          updated = true;
+          break;
+        }
+      }
+    }
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Applicant not found for this job' });
+    }
+
+    await job.save();
+
+    // Update jobSeekerData appliedJobs array status
+    await jobSeekerData.updateOne(
+      { email: applicantEmail, 'appliedJobs.jobId': job._id },
+      {
+        $set: {
+          'appliedJobs.$.status': action,
+          'appliedJobs.$.decisionAt': new Date()
+        }
+      }
+    );
+
+    return res.json({ message: `Applicant ${action}` });
+  } catch (err) {
+    console.error('Error setting applicant status:', err);
+    return res.status(500).json({ error: err.message || 'Failed to set applicant status' });
   }
 });
 
