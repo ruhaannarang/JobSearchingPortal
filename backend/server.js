@@ -703,7 +703,8 @@ app.post('/api/jobs/:jobId/applicants/:applicantEmail/status', authverify, async
       {
         $set: {
           'appliedJobs.$.status': action,
-          'appliedJobs.$.decisionAt': new Date()
+          'appliedJobs.$.decisionAt': new Date(),
+          'appliedJobs.$.recruiterNote': customNote || ''
         }
       }
     );

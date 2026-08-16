@@ -15,7 +15,9 @@ const jobSeekerDataSchema = new mongoose.Schema({
     salary: Number,
     domain: String,
     appliedAt: { type: Date, default: Date.now },
-    status: { type: String, default: 'applied' }
+    status: { type: String, default: 'applied' },
+    decisionAt: { type: Date },
+    recruiterNote: { type: String }
   }]
 });
 export const jobSeekerData = mongoose.model('jobSeekerData', jobSeekerDataSchema);

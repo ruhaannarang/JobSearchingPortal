@@ -147,6 +147,11 @@ const AppliedJobs = () => {
           color: #4caf50;
           border: 1px solid rgba(46, 125, 50, 0.3);
         }
+        .status-accepted {
+          background: rgba(46, 125, 50, 0.15);
+          color: #4caf50;
+          border: 1px solid rgba(46, 125, 50, 0.3);
+        }
         .status-rejected {
           background: rgba(211, 47, 47, 0.15);
           color: #f44336;
@@ -221,6 +226,17 @@ const AppliedJobs = () => {
               <div className="applied-job-date">
                 Applied on: {new Date(application.appliedAt).toLocaleDateString()}
               </div>
+              {application.recruiterNote && application.recruiterNote.trim() !== "" && (
+                <div style={{ marginTop: "12px", padding: "12px", borderRadius: "8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", color: "#ddd" }}>
+                  <div style={{ fontWeight: 700, color: "gold", marginBottom: "6px" }}>Message from Recruiter</div>
+                  <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{application.recruiterNote}</div>
+                  {application.decisionAt && (
+                    <div style={{ marginTop: "8px", fontSize: "0.85rem", color: "#aaa" }}>
+                      Decision on: {new Date(application.decisionAt).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
